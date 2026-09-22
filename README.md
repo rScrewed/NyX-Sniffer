@@ -59,6 +59,16 @@ If you don't have clear authorization to investigate the target and the server(s
 
 Nyx is gated behind a license key, **you need to buy one to run the tool.** On launch it checks the key's signature, expiry, and revocation status before letting a scan start; without a valid key it won't run.
 
+### 🎁 Try it free first
+
+No purchase needed to take it for a spin. Paste this trial key when prompted, it runs on **any machine** and is valid **through October 6, 2026**:
+
+```
+NYX1.eyJ2IjoxLCJpZCI6IjcyNGRiOWYwIiwidXNlciI6InRyaWFsIiwiaWF0IjoxNzkwMDg3NzgzNjgxLCJleHAiOjE3OTEyOTczODM2ODEsIm11bHRpIjp0cnVlfQ.4jj-ow_EDea1ttLIOMNg3A7WilAGJL-n2SK2qxnwFRjorM6QpcCKKLx1UJpAE6FhTSqSVeDJlJEe4bj7cQ7TBA
+```
+
+Like it? Grab a full key below to keep using it.
+
 **Get a key here → [ko-fi.com/rscrewed](https://ko-fi.com/rscrewed)**
 
 Once you have your key, either:
