@@ -61,10 +61,10 @@ Nyx is gated behind a license key, **you need to buy one to run the tool.** On l
 
 ### 🎁 Try it free first
 
-No purchase needed to take it for a spin. Paste this trial key when prompted, it runs on **any machine** and is valid **through October 6, 2026**:
+No purchase needed to take it for a spin. Paste this trial key when prompted, it runs on **any machine** and is valid **through September 25, 2026**:
 
 ```
-NYX1.eyJ2IjoxLCJpZCI6IjcyNGRiOWYwIiwidXNlciI6InRyaWFsIiwiaWF0IjoxNzkwMDg3NzgzNjgxLCJleHAiOjE3OTEyOTczODM2ODEsIm11bHRpIjp0cnVlfQ.4jj-ow_EDea1ttLIOMNg3A7WilAGJL-n2SK2qxnwFRjorM6QpcCKKLx1UJpAE6FhTSqSVeDJlJEe4bj7cQ7TBA
+NYX1.eyJ2IjoxLCJpZCI6Ijg1ZDA0NDJkIiwidXNlciI6InRyaWFsIiwiaWF0IjoxNzkwMDg4Mjc4MDMwLCJleHAiOjE3OTAzNDc0NzgwMzAsIm11bHRpIjp0cnVlfQ.AhtFZS5hsPuH2ueH9g_L6nI06jthxqzYZXJc6X64bqdFarPS3OtWTgA1Nddcn0FlCeKp1MSFZTEVIzWxIfquBg
 ```
 
 Like it? Grab a full key below to keep using it.
