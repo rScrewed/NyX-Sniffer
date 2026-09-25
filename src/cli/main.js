@@ -23,6 +23,11 @@ function reportFatalError(error) {
 function main() {
   const [command, argument] = commandLineArguments();
 
+  if (command === '--workers-display') {
+    require('../terminal/workerDisplay').runWorkerDisplay(argument);
+    return;
+  }
+
   if (command === '--view') {
     require('./viewCommand').runViewCommand(argument).catch((error) => {
       console.error('\n  ✗  ' + error.message + '\n');

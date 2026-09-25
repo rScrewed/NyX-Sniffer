@@ -2,6 +2,7 @@
 
 const terminal = require('../../terminal');
 const { settings } = require('../../config/settings');
+const { WORKER_WINDOW_THRESHOLD } = require('../../config/limits');
 const { createDiscordClient, RATE_LIMIT_STRATEGIES } = require('../../discord/client');
 const { randomBetween } = require('../../shared/time');
 const { stripEmoji } = require('../../shared/text');
@@ -129,6 +130,15 @@ async function runWorkers({ activeServers, usable, splits, state, downloader, cl
   const guilds = activeServers.map((server) => server.guild);
   const averagePerWorker = Math.round(totalMessages / slotCount);
 
+  if (slotCount > WORKER_WINDOW_THRESHOLD) {
+    const opened = await terminal.workers.openWindow();
+    terminal.workers.useExternalDisplay(opened);
+    terminal.log('');
+    terminal.log(opened
+      ? '  worker status is shown in a separate window'
+      : '  could not open a separate window — showing as many workers as fit here');
+  }
+
   terminal.log('');
   terminal.log('  ' + slotCount + ' workers collecting in parallel...');
   terminal.log('');
@@ -195,6 +205,7 @@ async function runWorkers({ activeServers, usable, splits, state, downloader, cl
   }
 
   await Promise.all(Array.from({ length: slotCount }, (_, slot) => runSlot(slot)));
+  terminal.workers.closeWindow();
 
   const merged = mergeSummaryByServer(state.summary);
   state.summary.length = 0;

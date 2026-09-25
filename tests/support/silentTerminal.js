@@ -22,7 +22,8 @@ function silenceTerminal() {
   replace(terminal, 'setMood', noop);
   replace(terminal, 'delay', () => Promise.resolve());
   for (const name of ['start', 'update', 'finish', 'setSubStatus', 'clearSubStatus']) replace(terminal.server, name, noop);
-  for (const name of ['initialize', 'update', 'setMood', 'setStatus', 'setSummary', 'setProgressCount']) replace(terminal.workers, name, noop);
+  for (const name of ['initialize', 'update', 'setMood', 'setStatus', 'setSummary', 'setProgressCount', 'useExternalDisplay', 'closeWindow']) replace(terminal.workers, name, noop);
+  replace(terminal.workers, 'openWindow', () => Promise.resolve(true));
 
   return { messages };
 }

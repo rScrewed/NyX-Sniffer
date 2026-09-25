@@ -53,6 +53,8 @@ The OSINT wordlists are plain JSON files in `viewer/intel/wordlists/`; the `bann
 
 ## Terminal UI
 
+With more than 15 workers, `terminal/workerWindow.js` opens a second terminal window running `nyx --workers-display` and streams worker state to it over a local socket or pipe (`terminal/workerDisplay.js` draws it). At most 22 workers are used (`config/limits.js`).
+
 `terminal/` draws into fixed screen regions with ANSI cursor addressing: a banner header, a scrolling log region, per-worker status rows pinned to the bottom, and prompts. Shared layout state lives in `terminal/state.js`. Code outside the module uses only the facade in `terminal/index.js`.
 
 ## Packaged executable

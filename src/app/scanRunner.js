@@ -67,8 +67,9 @@ async function runScan({ selection, pool }) {
   const startedAt = Date.now();
   const finalGuild = guildsToProcess[guildsToProcess.length - 1];
 
-  if (pool.tokens.length > 1) {
-    await runParallelScan({ state, guilds: guildsToProcess, finalGuild, guildMembership, tokens: pool.tokens, mainClient: pool.client, downloader });
+  const tokens = pool.activeTokens();
+  if (tokens.length > 1) {
+    await runParallelScan({ state, guilds: guildsToProcess, finalGuild, guildMembership, tokens, mainClient: pool.client, downloader });
   } else {
     await runSequentialScan({ state, guilds: guildsToProcess, finalGuild, downloader, client: pool.client });
   }

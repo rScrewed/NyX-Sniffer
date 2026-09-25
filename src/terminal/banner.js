@@ -2,6 +2,7 @@
 
 const state = require('./state');
 const workerPanel = require('./workerPanel');
+const workerWindow = require('./workerWindow');
 const { fitToScreen } = require('./textFit');
 const { delay } = require('../shared/time');
 const { BANNER_LINES, CAT_FACES, bannerColour } = require('./theme');
@@ -50,6 +51,7 @@ function updateHeader() {
   output += workerPanel.renderRowsForHeader() + RESTORE_CURSOR;
   process.stdout.write(output);
   state.catFrame++;
+  if (workerWindow.isOpen()) workerWindow.send({ type: 'state', ...workerPanel.snapshot() });
 }
 
 function startHeader() {

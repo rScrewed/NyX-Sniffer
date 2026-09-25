@@ -3,6 +3,7 @@
 const state = require('./state');
 const banner = require('./banner');
 const workerPanel = require('./workerPanel');
+const workerWindow = require('./workerWindow');
 const serverProgress = require('./serverProgress');
 const logging = require('./log');
 const prompts = require('./prompts');
@@ -48,6 +49,9 @@ module.exports = {
     setStatus: workerPanel.setStatus,
     setSummary: workerPanel.setSummary,
     setProgressCount: workerPanel.setProgressCount,
+    useExternalDisplay: workerPanel.useExternalDisplay,
+    openWindow: () => workerWindow.open(),
+    closeWindow: workerWindow.close,
   },
   prompts: { ...prompts, promptSettings },
 };

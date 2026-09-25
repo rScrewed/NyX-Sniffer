@@ -120,8 +120,9 @@ async function mapGuildMembership(pool, guilds) {
   const membership = new Map();
   for (const guild of guilds) membership.set(guild.id, { guild, memberTokenIdxs: new Set([0]) });
 
-  for (let worker = 1; worker < pool.tokens.length; worker++) {
-    const client = createDiscordClient({ token: pool.tokens[worker], rateLimit: RATE_LIMIT_STRATEGIES.ABORT });
+  const tokens = pool.activeTokens();
+  for (let worker = 1; worker < tokens.length; worker++) {
+    const client = createDiscordClient({ token: tokens[worker], rateLimit: RATE_LIMIT_STRATEGIES.ABORT });
     const workerGuilds = await client.request('/users/@me/guilds');
     if (!Array.isArray(workerGuilds)) continue;
     for (const guild of workerGuilds) {
@@ -136,7 +137,7 @@ function reportGuildCounts(pool, guilds, membership) {
     terminal.log('  ' + guilds.length + ' server(s) found');
     return;
   }
-  const perWorker = pool.tokens
+  const perWorker = pool.activeTokens()
     .map((_, index) => ['W' + (index + 1), [...membership.values()].filter((entry) => entry.memberTokenIdxs.has(index)).length])
     .filter(([, count]) => count > 0)
     .map(([label, count]) => label + ': ' + count)
@@ -154,7 +155,7 @@ async function beginNewScan(pool, resume) {
   let guilds = ownGuilds;
   let membership = null;
 
-  if (pool.tokens.length > 1) {
+  if (pool.activeTokens().length > 1) {
     membership = await mapGuildMembership(pool, ownGuilds);
     guilds = [...membership.values()].map((entry) => entry.guild);
   }

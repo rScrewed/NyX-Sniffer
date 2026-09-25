@@ -2,15 +2,14 @@
 
 const state = require('./state');
 const { registerCountAnimation, requestCountAnimation, stepTowards } = require('./animator');
-const { fitToWidth, terminalColumns } = require('./textFit');
-const { CAT_FACES, WORKER_PALETTE, WORKER_ERROR_COLOUR, WORKER_DONE_COLOUR } = require('./theme');
-const { SAVE_CURSOR, RESTORE_CURSOR, CLEAR_LINE, ERASE_TO_LINE_END, RESET, BOLD, DIM, moveCursor, moveToColumn, setScrollRegion } = require('./ansi');
+const { terminalColumns, fitToScreen } = require('./textFit');
+const { renderWorkerLine } = require('./workerLine');
+const { CAT_FACES } = require('./theme');
+const { SAVE_CURSOR, RESTORE_CURSOR, CLEAR_LINE, RESET, DIM, moveCursor, setScrollRegion } = require('./ansi');
 
-const PROGRESS_BAR_COLUMN = 75;
-const PROGRESS_BAR_WIDTH = 12;
-const PROGRESS_BAR_TEXT_WIDTH = PROGRESS_BAR_WIDTH + 5;
-const MIN_BAR_COLUMN = 40;
 const DEFAULT_ROWS = 24;
+const LOG_LINES_TO_KEEP = 8;
+const SNAPSHOT_FIELDS = ['mode', 'name', 'count', 'displayCount', 'unit', 'done', 'sub', 'status', 'mood', 'frame', 'target'];
 
 let rows = [];
 let summaryText = null;
@@ -20,13 +19,20 @@ let progressRow = null;
 let progressTarget = 0;
 let progressDisplayed = 0;
 let progressSuffix = '';
+let externalDisplay = false;
 
 function screenHeight() {
   return process.stdout.rows || DEFAULT_ROWS;
 }
 
+function visibleRowCount() {
+  if (externalDisplay) return 0;
+  const room = screenHeight() - (state.bannerEndLine || 0) - LOG_LINES_TO_KEEP;
+  return Math.min(rows.length, Math.max(1, room));
+}
+
 function reservedLines() {
-  return rows.length + (summaryText !== null ? 1 : 0) + (progressText !== null ? 1 : 0);
+  return visibleRowCount() + (summaryText !== null ? 1 : 0) + (progressText !== null ? 1 : 0);
 }
 
 function hasWorkers() {
@@ -50,7 +56,9 @@ function applyScrollRegion() {
 
 function redrawSummaryLine() {
   if (summaryRow === null) return;
-  process.stdout.write(SAVE_CURSOR + moveCursor(summaryRow, 1) + CLEAR_LINE + (summaryText || '') + RESTORE_CURSOR);
+  const hidden = externalDisplay ? 0 : rows.length - visibleRowCount();
+  const note = hidden > 0 ? '  ' + DIM + '(+' + hidden + ' more workers, enlarge the window)' + RESET : '';
+  process.stdout.write(SAVE_CURSOR + moveCursor(summaryRow, 1) + CLEAR_LINE + fitToScreen((summaryText || '') + note) + RESTORE_CURSOR);
 }
 
 function redrawProgressLine() {
@@ -59,40 +67,10 @@ function redrawProgressLine() {
   process.stdout.write(SAVE_CURSOR + moveCursor(progressRow, 1) + CLEAR_LINE + text + RESTORE_CURSOR);
 }
 
-function renderProgressBar(worker, colour) {
-  const ratio = worker.done ? 1 : Math.min(0.99, worker.displayCount / worker.target);
-  const filled = Math.round(ratio * PROGRESS_BAR_WIDTH);
-  const percent = Math.round(ratio * 100);
-  const bar = colour + '█'.repeat(filled) + DIM + '░'.repeat(PROGRESS_BAR_WIDTH - filled) + RESET;
-  return DIM + String(percent).padStart(3) + '%' + RESET + ' ' + bar;
-}
-
-function renderWorkerLine(worker, index) {
-  const faces = worker.done ? CAT_FACES.done : (CAT_FACES[worker.mood] || CAT_FACES.idle);
-  const face = worker.done ? faces[0] : faces[worker.frame % faces.length];
-  const colour = worker.done ? WORKER_DONE_COLOUR : worker.mood === 'sad' ? WORKER_ERROR_COLOUR : WORKER_PALETTE[index % WORKER_PALETTE.length];
-  const tick = worker.done ? '✓' : '▸';
-  const count = worker.displayCount > 0 ? ' (' + worker.displayCount + ' ' + worker.unit + ')' : '';
-  const mode = worker.mode ? BOLD + worker.mode + RESET + DIM + ' │ ' + RESET : '';
-  const left = '  ' + colour + face + RESET + '  ' + colour + tick + ' ' + DIM + 'W' + (index + 1) + RESET + '  ' + mode + worker.name + DIM + count + RESET;
-  const trailer = worker.done ? '' : (worker.sub || worker.status);
-  const trailing = trailer ? '  ' + DIM + trailer + RESET : '';
-
-  const columns = terminalColumns();
-  const barColumn = Math.min(PROGRESS_BAR_COLUMN, columns - PROGRESS_BAR_TEXT_WIDTH - 4);
-
-  if (worker.target > 0 && barColumn >= MIN_BAR_COLUMN) {
-    const remaining = columns - barColumn - PROGRESS_BAR_TEXT_WIDTH - 1;
-    return fitToWidth(left, barColumn - 1) + moveToColumn(barColumn) + renderProgressBar(worker, colour) +
-      fitToWidth(trailing, remaining) + ERASE_TO_LINE_END;
-  }
-  return fitToWidth(left + trailing, columns - 1);
-}
-
 function redrawWorkerLine(index) {
   const worker = rows[index];
-  if (!worker) return;
-  process.stdout.write(SAVE_CURSOR + moveCursor(worker.line, 1) + CLEAR_LINE + renderWorkerLine(worker, index) + RESTORE_CURSOR);
+  if (!worker || index >= visibleRowCount() || worker.line <= 0) return;
+  process.stdout.write(SAVE_CURSOR + moveCursor(worker.line, 1) + CLEAR_LINE + renderWorkerLine(worker, index, terminalColumns()) + RESTORE_CURSOR);
 }
 
 function pinToBottom() {
@@ -106,19 +84,34 @@ function pinToBottom() {
     progressRow = row++;
     redrawProgressLine();
   }
+  const visible = visibleRowCount();
   rows.forEach((worker, index) => {
-    worker.line = height - rows.length + 1 + index;
+    worker.line = index < visible ? height - visible + 1 + index : 0;
     redrawWorkerLine(index);
   });
 }
 
 function renderRowsForHeader() {
   let output = '';
+  const visible = visibleRowCount();
   rows.forEach((worker, index) => {
     worker.frame++;
-    output += moveCursor(worker.line, 1) + CLEAR_LINE + renderWorkerLine(worker, index);
+    if (index < visible) output += moveCursor(worker.line, 1) + CLEAR_LINE + renderWorkerLine(worker, index, terminalColumns());
   });
   return output;
+}
+
+function useExternalDisplay(enabled) {
+  externalDisplay = enabled;
+}
+
+function snapshot() {
+  if (externalDisplay) rows.forEach((worker) => worker.frame++);
+  return {
+    workers: rows.map((worker) => Object.fromEntries(SNAPSHOT_FIELDS.map((field) => [field, worker[field]]))),
+    summary: summaryText,
+    progress: progressText,
+  };
 }
 
 function stepCounts() {
@@ -217,6 +210,8 @@ module.exports = {
   applyScrollRegion,
   pinToBottom,
   renderRowsForHeader,
+  useExternalDisplay,
+  snapshot,
   setSummary,
   setProgressCount,
   initialize,

@@ -204,6 +204,8 @@ Each token is checked with a live progress bar, then NyX-Sniffer splits the mess
 
 A few things to know:
 
+- **Up to 22 workers are used.** Discord rate limits per IP address, so accounts beyond about 22 stop adding speed. If `.env` holds more tokens, NyX-Sniffer uses the first 22 and tells you.
+- **A separate window shows the workers.** With more than 15 workers a second terminal window opens with one row per worker, so the main window stays readable. If no window can be opened (for example over SSH), the main window shows as many worker rows as fit.
 - **This multiplies the ban risk described above.** Every token used is a real account being automated.
 - A worker only receives work for servers its account is a member of. There is no automatic joining. Join manually with that account first, or scan with a single token.
 - If a worker gets rate limited near the end of its range, a finished worker lends its connection to complete the last pages instead of everyone waiting out the full backoff.

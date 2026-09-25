@@ -3,6 +3,7 @@
 const terminal = require('../terminal');
 const terminalUi = require('./terminalUi');
 const { loadTokens, saveEnv } = require('../config/envFile');
+const { MAX_ACTIVE_WORKERS } = require('../config/limits');
 const { createDiscordClient, RATE_LIMIT_STRATEGIES } = require('../discord/client');
 
 const NUMBERED_TOKEN_KEY = /^Token\d+$/;
@@ -53,6 +54,8 @@ function createAccountPool(initialEnv) {
       : null;
   }
 
+  pool.activeTokens = () => pool.tokens.slice(0, MAX_ACTIVE_WORKERS);
+
   pool.useToken = (token) => {
     pool.tokens = [token];
     refreshClient();
@@ -65,15 +68,16 @@ function createAccountPool(initialEnv) {
   };
 
   pool.verifyWorkers = async () => {
-    const loader = terminal.createProgressLoader(pool.tokens.length);
+    const active = pool.activeTokens();
+    const loader = terminal.createProgressLoader(active.length);
     const results = [];
 
     try {
-      for (let index = 0; index < pool.tokens.length; index++) {
-        const probe = createDiscordClient({ token: pool.tokens[index], rateLimit: RATE_LIMIT_STRATEGIES.ABORT });
+      for (let index = 0; index < active.length; index++) {
+        const probe = createDiscordClient({ token: active[index], rateLimit: RATE_LIMIT_STRATEGIES.ABORT });
         const me = await probe.request('/users/@me');
         const ok = isValidAccount(me);
-        results.push({ label: workerLabel(index), me, ok, token: pool.tokens[index] });
+        results.push({ label: workerLabel(index), me, ok, token: active[index] });
         loader.update(index + 1, workerLabel(index) + (ok ? ' online' : '  failed'));
       }
       await loader.finish();
@@ -113,7 +117,10 @@ function createAccountPool(initialEnv) {
   pool.connect = async () => {
     refreshClient();
     if (pool.tokens.length === 0) return;
-    if (pool.tokens.length === 1) {
+    if (pool.tokens.length > MAX_ACTIVE_WORKERS) {
+      terminal.log('  using the first ' + MAX_ACTIVE_WORKERS + ' of ' + pool.tokens.length + ' workers  ·  Discord limits requests per IP, so more accounts add no speed');
+    }
+    if (pool.activeTokens().length === 1) {
       const me = await pool.client.request('/users/@me');
       terminal.log(isValidAccount(me) ? '  logged in as        ' + describeAccount(me) : '  token loaded');
     } else {
