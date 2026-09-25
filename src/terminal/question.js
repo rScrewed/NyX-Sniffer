@@ -8,7 +8,9 @@ function ask(label) {
   return new Promise((resolve) => {
     process.stdout.write(SAVE_CURSOR + moveCursor(state.outputLine, 1) + CLEAR_LINE);
     const reader = readline.createInterface({ input: process.stdin, output: process.stdout });
+    state.activePrompt = { row: state.outputLine, label, reader };
     reader.question(label, (answer) => {
+      state.activePrompt = null;
       reader.close();
       resolve(answer.trim());
     });

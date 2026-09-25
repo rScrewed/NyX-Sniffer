@@ -2,6 +2,7 @@
 
 const state = require('./state');
 const workerPanel = require('./workerPanel');
+const { fitToScreen } = require('./textFit');
 const { delay } = require('../shared/time');
 const { BANNER_LINES, CAT_FACES, bannerColour } = require('./theme');
 const { HIDE_CURSOR, SHOW_CURSOR, CLEAR_LINE, CLEAR_SCREEN, RESET_SCROLL_REGION, SAVE_CURSOR, RESTORE_CURSOR, RESET, moveCursor } = require('./ansi');
@@ -19,7 +20,7 @@ function setMood(mood) {
   if (CAT_FACES[mood]) state.catFrame = 0;
 }
 
-function renderBannerLine(lineIndex, startPosition, frame) {
+function renderBannerText(lineIndex, startPosition, frame) {
   const line = BANNER_LINES[lineIndex];
   if (line === '') return '';
   let text = '  ';
@@ -29,6 +30,8 @@ function renderBannerLine(lineIndex, startPosition, frame) {
   }
   return text;
 }
+
+const renderBannerLine = (lineIndex, startPosition, frame) => fitToScreen(renderBannerText(lineIndex, startPosition, frame));
 
 function updateHeader() {
   if (!state.bannerPrinted && !workerPanel.hasWorkers()) return;
@@ -94,4 +97,4 @@ async function showBanner() {
   updateHeader();
 }
 
-module.exports = { clearScreen, setMood, stopHeader, showBanner };
+module.exports = { clearScreen, setMood, stopHeader, showBanner, renderBannerLine };

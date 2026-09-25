@@ -2,11 +2,14 @@
 
 const state = require('./state');
 const { registerCountAnimation, requestCountAnimation, stepTowards } = require('./animator');
+const { fitToWidth, terminalColumns } = require('./textFit');
 const { CAT_FACES, WORKER_PALETTE, WORKER_ERROR_COLOUR, WORKER_DONE_COLOUR } = require('./theme');
 const { SAVE_CURSOR, RESTORE_CURSOR, CLEAR_LINE, ERASE_TO_LINE_END, RESET, BOLD, DIM, moveCursor, moveToColumn, setScrollRegion } = require('./ansi');
 
 const PROGRESS_BAR_COLUMN = 75;
 const PROGRESS_BAR_WIDTH = 12;
+const PROGRESS_BAR_TEXT_WIDTH = PROGRESS_BAR_WIDTH + 5;
+const MIN_BAR_COLUMN = 40;
 const DEFAULT_ROWS = 24;
 
 let rows = [];
@@ -75,10 +78,15 @@ function renderWorkerLine(worker, index) {
   const trailer = worker.done ? '' : (worker.sub || worker.status);
   const trailing = trailer ? '  ' + DIM + trailer + RESET : '';
 
-  if (worker.target > 0) {
-    return left + moveToColumn(PROGRESS_BAR_COLUMN) + renderProgressBar(worker, colour) + trailing + ERASE_TO_LINE_END;
+  const columns = terminalColumns();
+  const barColumn = Math.min(PROGRESS_BAR_COLUMN, columns - PROGRESS_BAR_TEXT_WIDTH - 4);
+
+  if (worker.target > 0 && barColumn >= MIN_BAR_COLUMN) {
+    const remaining = columns - barColumn - PROGRESS_BAR_TEXT_WIDTH - 1;
+    return fitToWidth(left, barColumn - 1) + moveToColumn(barColumn) + renderProgressBar(worker, colour) +
+      fitToWidth(trailing, remaining) + ERASE_TO_LINE_END;
   }
-  return left + trailing;
+  return fitToWidth(left + trailing, columns - 1);
 }
 
 function redrawWorkerLine(index) {

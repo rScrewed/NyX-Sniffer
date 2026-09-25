@@ -2,6 +2,7 @@
 
 const state = require('./state');
 const { registerCountAnimation, requestCountAnimation, stepTowards } = require('./animator');
+const { fitToScreen } = require('./textFit');
 const { SAVE_CURSOR, RESTORE_CURSOR, CLEAR_LINE, RESET, BOLD, DIM, moveCursor } = require('./ansi');
 
 let mode = '';
@@ -23,7 +24,7 @@ function redrawHeadline(done) {
   const metaText = meta ? '  ' + meta : '';
   const countText = displayedCount > 0 ? ' (' + displayedCount + ' ' + unit + metaText + ')' : '';
   const line = '  ' + tick + '  ' + BOLD + mode + RESET + DIM + ' │ ' + RESET + name + DIM + countText + RESET;
-  process.stdout.write(SAVE_CURSOR + moveCursor(headlineRow, 1) + CLEAR_LINE + line + RESTORE_CURSOR);
+  process.stdout.write(SAVE_CURSOR + moveCursor(headlineRow, 1) + CLEAR_LINE + fitToScreen(line) + RESTORE_CURSOR);
 }
 
 function stepCount() {
@@ -74,11 +75,14 @@ function finish() {
   redrawHeadline(true);
 }
 
-function relocate() {
-  headlineRow = state.outputLine;
-  subStatusRow = state.outputLine + 1;
-  state.outputLine += 2;
+function shiftRows(offset) {
+  if (headlineRow === null) return;
+  headlineRow -= offset;
+  subStatusRow -= offset;
+}
+
+function redraw() {
   redrawHeadline(false);
 }
 
-module.exports = { isActive, start, update, finish, relocate, setSubStatus, clearSubStatus };
+module.exports = { isActive, start, update, finish, shiftRows, redraw, setSubStatus, clearSubStatus };

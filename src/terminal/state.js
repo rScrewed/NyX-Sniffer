@@ -9,7 +9,8 @@ const state = {
   flatOutput: false,
   headerTimer: null,
   catFrame: 0,
-  logBuffer: [],
+  logEntries: [],
+  activePrompt: null,
 };
 
 module.exports = state;
