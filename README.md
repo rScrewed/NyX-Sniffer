@@ -249,9 +249,10 @@ Available with **Messages** and **All**. Both are shown in the browser viewer.
 
 ## Sort Files
 
-Sorts the images downloaded by a finished scan into folders by what is in them, using a local AI image classifier (CLIP). Nothing is uploaded anywhere. Pick **Sort Files** from the start menu, choose a scan, choose a quality level, and it runs. You can also run the script directly:
+Sorts the images downloaded by a finished scan into folders by what is in them, using a local AI image classifier (CLIP). Nothing is uploaded anywhere. Pick **Sort Files** from the start menu, choose a scan, choose a quality level, and it runs. You can also run the script directly. Install its dependencies first (`torch`, `transformers` and `pillow`, listed in [`python/requirements.txt`](python/requirements.txt)):
 
 ```
+pip install -r python/requirements.txt
 python python/sort_images.py Everything_username --quality balanced
 ```
 
