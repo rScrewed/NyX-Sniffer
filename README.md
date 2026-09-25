@@ -16,6 +16,8 @@
   <a href="https://www.virustotal.com/gui/file/10c8a641f43cb53a2d523811657e549e582cb230715fa579c0ca65572b3a9e7c"><img alt="VirusTotal scan" src="https://img.shields.io/badge/VirusTotal-scan-8b7cf0?logo=virustotal&logoColor=white"></a>
 </p>
 
+> **Update:** I'm working on releasing Nyx's source code as open source. The goal is to move away from a key system so the project can grow faster and, hopefully, reach more people.
+
 <p align="center">
   <img alt="Nyx scanning a target with 18 parallel workers" src="images/demo.gif" width="800">
 </p>
