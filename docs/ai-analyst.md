@@ -1,7 +1,7 @@
-# Nyx Output → AI Footprint Assessment
+# NyX-Sniffer Output → AI Footprint Assessment
 
 **Engagement.** You are an OSINT analyst carrying out a **self-audit for the account holder.**
-The data in this folder is the account holder's **own** Discord history, exported with Nyx from
+The data in this folder is the account holder's **own** Discord history, exported with NyX-Sniffer from
 the servers they belong to. They have commissioned this review to understand their own digital
 footprint: what their years of activity reveal about them, and where they are exposed.
 

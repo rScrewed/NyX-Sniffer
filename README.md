@@ -1,4 +1,4 @@
-<h1 align="center">Nyx Sniffer</h1>
+<h1 align="center">NyX-Sniffer</h1>
 
 <p align="center">
   <b>Turn a Discord user ID into a profile.</b><br>
@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img alt="Nyx scanning a target with 18 parallel workers" src="images/demo.gif" width="800">
+  <img alt="NyX-Sniffer scanning a target with 18 parallel workers" src="images/demo.gif" width="800">
 </p>
 
 A terminal-based OSINT tool that sweeps your shared Discord servers for messages, files, and mentions tied to a target user ID. **The terminal only collects the raw data. The browser viewer it opens afterward is what turns that data into a profile.**
@@ -34,7 +34,7 @@ If you don't have clear authorization to investigate the target and the server(s
 
 ## What you get
 
-People forget what they've put out there. Months or years of messages spread across a dozen servers add up to more than most people could recall themselves. Nyx pulls all of it into one place, and the browser viewer turns that raw dump into a profile instead of a wall of text:
+People forget what they've put out there. Months or years of messages spread across a dozen servers add up to more than most people could recall themselves. NyX-Sniffer pulls all of it into one place, and the browser viewer turns that raw dump into a profile instead of a wall of text:
 
 - **Word Wall**: the target's most-used words, sized by how often they say them.
 - **Mentions and Ranked Mentioners**: who pings them and how often, ranked. This is their real social graph, the accounts they actually talk to. Click a name to pivot into everything that person has said to the target.
@@ -75,7 +75,7 @@ People forget what they've put out there. Months or years of messages spread acr
 - A Discord **user token** for an account that shares servers with the target.
 - Optional, for **Sort Files**: Python 3.9 or newer. The dependencies (about 200 MB) are installed on first use into a private `.nyx-venv` folder, after asking.
 
-Nyx runs on Windows, macOS, and Linux.
+NyX-Sniffer runs on Windows, macOS, and Linux.
 
 ## Quick start
 
@@ -90,7 +90,7 @@ Or download the source zip from the [releases page](https://github.com/rScrewed/
 
 On the first run:
 
-1. **Paste your Discord token** when prompted. A `.env` file is created in the folder you ran Nyx from and the token is saved into it, so you are not asked again.
+1. **Paste your Discord token** when prompted. A `.env` file is created in the folder you ran NyX-Sniffer from and the token is saved into it, so you are not asked again.
 2. **(Optional) add more workers for speed.** Open `.env` and, instead of the single `Token=` line, add numbered ones:
 
    ```
@@ -107,7 +107,7 @@ On the first run:
 
 > **Finding a user ID:** enable Developer Mode in Discord settings, right-click any username, and choose **Copy User ID**.
 
-Results, `.env`, and interrupted-scan folders are written to the directory you start Nyx from. They are git-ignored by default. Don't remove that before pushing anywhere, since they can contain real personal data.
+Results, `.env`, and interrupted-scan folders are written to the directory you start NyX-Sniffer from. They are git-ignored by default. Don't remove that before pushing anywhere, since they can contain real personal data.
 
 ## Usage
 
@@ -131,7 +131,7 @@ Scans can be interrupted (Ctrl+C) and resumed later from the start menu.
 
 ![Loading workers](images/loading-workers.png)
 
-**Discovering servers**: Nyx looks up the target's profile and finds the servers you both share (target details hidden):
+**Discovering servers**: NyX-Sniffer looks up the target's profile and finds the servers you both share (target details hidden):
 
 ![Discovering servers](images/discovering-servers.png)
 
@@ -153,7 +153,7 @@ If a scan was interrupted before writing JSON (a `_tmp_` folder), the viewer fal
 
 ## Navigating the UI
 
-Nyx has two screens. The **terminal menu** collects the raw data, and the **browser viewer** turns it into a profile.
+NyX-Sniffer has two screens. The **terminal menu** collects the raw data, and the **browser viewer** turns it into a profile.
 
 ### Terminal menu
 
@@ -191,7 +191,7 @@ Token2=second_discord_token
 Token3=third_discord_token
 ```
 
-Each token is checked with a live progress bar, then Nyx splits the message range for each active server across all workers and runs them in parallel.
+Each token is checked with a live progress bar, then NyX-Sniffer splits the message range for each active server across all workers and runs them in parallel.
 
 ![Workers collecting data in parallel (target details hidden)](images/workers-collecting.png)
 
@@ -242,7 +242,7 @@ python python/sort_images.py Everything_username --quality balanced
 
 ## Settings
 
-From the start menu, **Settings** tunes the pacing Nyx uses when talking to Discord's API. Values are stored in `.env`.
+From the start menu, **Settings** tunes the pacing NyX-Sniffer uses when talking to Discord's API. Values are stored in `.env`.
 
 | Setting | `.env` keys | What it controls |
 |---|---|---|
@@ -282,7 +282,7 @@ The [AI analyst prompt](docs/ai-analyst.md) describes this layout and can be giv
 
 ## Building a standalone executable
 
-Nyx can be packaged as a single executable (a Node single-executable application) so people without Node.js can run it:
+NyX-Sniffer can be packaged as a single executable (a Node single-executable application) so people without Node.js can run it:
 
 ```
 npm run build            # executable for the current platform, in dist/

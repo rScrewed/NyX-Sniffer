@@ -1,6 +1,6 @@
 # Architecture
 
-Nyx is a Node.js command-line application (CommonJS, no build step to run from source) plus one optional Python script.
+NyX-Sniffer is a Node.js command-line application (CommonJS, no build step to run from source) plus one optional Python script.
 This document explains how the code is organised and how a scan flows through it.
 
 ## Layout
