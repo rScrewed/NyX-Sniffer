@@ -1,6 +1,6 @@
 {
   "name": "nyx-sniffer",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Terminal OSINT tool that collects a Discord user's messages, files and mentions from shared servers and builds a profile in a local browser viewer.",
   "private": true,
   "license": "MIT",

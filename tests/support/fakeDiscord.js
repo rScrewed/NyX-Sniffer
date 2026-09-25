@@ -125,15 +125,9 @@ function guildSearch(guild, params) {
   list.sort((a, b) => (BigInt(a.id) < BigInt(b.id) ? -order : order));
 
   const page = list.slice(offset, offset + limit);
-  const channelIds = [...new Set(page.map((m) => m.channel_id))];
-  const channels = channelIds.map((cid) => {
-    const entry = guild.channels.find(([id]) => id === cid);
-    return { id: cid, name: entry ? entry[1] : 'unknown', guild_id: guild.id };
-  });
   return {
     total_results: list.length,
     messages: page.map((m) => [m]),
-    channels,
   };
 }
 
@@ -169,6 +163,22 @@ function handleDiscord(pathAndQuery, headers) {
   if (m) {
     const u = USERS[m[1]];
     return u ? json(200, u) : json(404, { code: 10013, message: 'Unknown User' });
+  }
+
+  m = p.match(/^\/guilds\/(\d+)\/channels$/);
+  if (m) {
+    const guild = GUILDS.find((g) => g.id === m[1]);
+    if (!guild || !token.guilds.includes(guild.id)) return json(403, { code: 50001, message: 'Missing Access' });
+    return json(200, guild.channels.map(([id, name]) => ({ id, name, type: 0, guild_id: guild.id })));
+  }
+
+  m = p.match(/^\/channels\/(\d+)$/);
+  if (m) {
+    for (const guild of GUILDS) {
+      const entry = guild.channels.find(([id]) => id === m[1]);
+      if (entry) return json(200, { id: entry[0], name: entry[1], guild_id: guild.id });
+    }
+    return json(404, { code: 10003, message: 'Unknown Channel' });
   }
 
   m = p.match(/^\/guilds\/(\d+)\/messages\/search$/);

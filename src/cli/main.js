@@ -28,6 +28,14 @@ function main() {
     return;
   }
 
+  if (command === '--resolve-channels') {
+    require('./repairChannelsCommand').runRepairChannelsCommand(argument).catch((error) => {
+      console.error('\n  ✗  ' + error.message + '\n');
+      process.exit(1);
+    });
+    return;
+  }
+
   if (command === '--view') {
     require('./viewCommand').runViewCommand(argument).catch((error) => {
       console.error('\n  ✗  ' + error.message + '\n');

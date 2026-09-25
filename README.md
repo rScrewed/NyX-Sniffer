@@ -156,6 +156,16 @@ npm start -- --view Everything_username
 
 If a scan was interrupted before writing JSON (a `_tmp_` folder), the viewer falls back to a paginated file browser with image, video, and audio filters.
 
+### Fix channel names in older scans
+
+Scans made before v2.1.1 show every channel as `#unknown`, because Discord's search results do not include channel names. New scans look the names up automatically. To fix an existing scan without scanning again, run this from the folder that holds your `.env`:
+
+```
+npm start -- --resolve-channels Everything_username
+```
+
+Leave the folder out to fix every scan folder in the current directory. Channels that were deleted, or that your account cannot see, stay `#unknown`.
+
 ---
 
 ## Navigating the UI

@@ -54,7 +54,7 @@ test('searchMessages collects every message from the target with the documented 
     'authorAvatar', 'timestamp', 'content', 'attachments', 'embeds', 'files', 'type',
   ]);
   assert.equal(messages[0].guildName, 'Alpha Server');
-  assert.match(messages[0].channelName, /general|memes|off-topic/);
+  assert.equal(messages[0].channelName, null);
   assert.deepEqual(messages[0].files, []);
 });
 

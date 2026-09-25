@@ -3,6 +3,10 @@
 const { stripEmoji } = require('../shared/text');
 const { searchMessages, searchFiles, searchMentions } = require('./search');
 
+function nameChannels(state, guild, records, context) {
+  return state.channelDirectory.fillNames({ guildId: guild.id, records, request: context.request });
+}
+
 async function collectGuild({ guild, state, downloader, context, hooks }) {
   const { scan } = state;
   const server = stripEmoji(guild.name) || guild.id;
@@ -11,6 +15,7 @@ async function collectGuild({ guild, state, downloader, context, hooks }) {
 
   if (scan.mentionsOnly) {
     const mentions = await searchMentions({ ...shared, onTargetResolved: recordIdentity, onProgress: hooks.onProgress });
+    await nameChannels(state, guild, mentions, context);
     state.mentions.push(...mentions);
     state.summary.push({ server, guildId: guild.id, count: mentions.length, files: [], mentions: mentions.length });
     if (hooks.onCollected) hooks.onCollected(mentions.length);
@@ -19,6 +24,7 @@ async function collectGuild({ guild, state, downloader, context, hooks }) {
 
   const search = scan.filesOnly ? searchFiles : searchMessages;
   const messages = await search({ ...shared, onAuthorResolved: recordIdentity, onProgress: hooks.onProgress });
+  if (scan.saveMessages) await nameChannels(state, guild, messages, context);
   const files = messages.flatMap((message) => message.files || []);
   state.messages.push(...messages);
 
@@ -30,6 +36,7 @@ async function collectGuild({ guild, state, downloader, context, hooks }) {
       onTargetResolved: recordIdentity,
       onProgress: (count, meta) => hooks.onMentionProgress(count, meta, messages.length),
     });
+    await nameChannels(state, guild, mentions, context);
     state.mentions.push(...mentions);
   } else if (hooks.onCollected) {
     hooks.onCollected(scan.filesOnly ? files.length : messages.length);

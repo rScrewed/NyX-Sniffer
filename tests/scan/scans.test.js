@@ -58,6 +58,8 @@ test('a sequential scan collects messages, mentions and a summary per server', a
     assert.equal(state.username, 'target_user');
     assert.deepEqual(state.summary.map((entry) => [entry.server, entry.count]), [['Alpha Server', 130], ['Beta', 60], ['Gamma', 0]]);
     assert.ok(state.messages.some((message) => message.files.length > 0));
+    assert.ok(state.messages.every((message) => /^(general|memes|off-topic|chat|media)$/.test(message.channelName)));
+    assert.ok(state.mentions.every((mention) => /^(general|memes|off-topic|chat|media)$/.test(mention.channelName)));
 
     const checkpoint = loadCheckpoint(path.join(root, '_tmp_x'));
     assert.equal(checkpoint.completedGuildIds.length, 3);
