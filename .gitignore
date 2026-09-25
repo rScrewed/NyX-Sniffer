@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-win/
+.build-cache/
+.nyx-venv/
+__pycache__/
+
+.env
+.machine-id
+nyx_error.log
+
+Everything_*/
+Messages_*/
+Files_*/
+Mentions_*/
+_tmp_*/

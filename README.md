@@ -3,42 +3,20 @@
 <p align="center">
   <b>Turn a Discord user ID into a profile.</b><br>
   Word wall · activity schedule · social graph · OSINT intel tags<br>
-  <sub>By rScrewed</sub>
+  <sub>Open source · By rScrewed</sub>
 </p>
 
 <p align="center">
-  <a href="https://ko-fi.com/rscrewed"><img alt="Support on Ko-fi" src="https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white"></a>
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green">
+  <img alt="Node.js 20+" src="https://img.shields.io/badge/node-%3E%3D20-339933?logo=node.js&logoColor=white">
+  <img alt="Platforms: Windows, macOS, Linux" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue">
 </p>
-
-<p align="center">
-  <img alt="Platform: Windows" src="https://img.shields.io/badge/platform-Windows-blue">
-  <img alt="JavaScript" src="https://img.shields.io/badge/language-JavaScript-yellow">
-  <a href="https://www.virustotal.com/gui/file/10c8a641f43cb53a2d523811657e549e582cb230715fa579c0ca65572b3a9e7c"><img alt="VirusTotal scan" src="https://img.shields.io/badge/VirusTotal-scan-8b7cf0?logo=virustotal&logoColor=white"></a>
-</p>
-
-> **Update:** I'm working on releasing Nyx's source code as open source. The goal is to move away from a key system so the project can grow faster and, hopefully, reach more people.
 
 <p align="center">
   <img alt="Nyx scanning a target with 18 parallel workers" src="images/demo.gif" width="800">
 </p>
 
-A terminal-based OSINT tool that sweeps your shared Discord servers for messages, files, and mentions tied to a target user ID. **The terminal only collects the raw data, the browser viewer it opens afterward is what actually turns that data into a profile.**
-
----
-
-## What you actually get
-
-People forget what they've put out there. Months or years of messages spread across a dozen servers add up to more than most people could recall themselves, Nyx pulls all of it into one place, and the browser viewer is what turns that raw dump into an actual profile, not a wall of text:
-
-- **Word Wall**: the target's most-used words and phrases, sized by how often they say them. See what someone's actually about at a glance, no reading required.
-- **Mentions & Ranked Mentioners**: who pings them and how often, ranked. This is their real social graph, the accounts they actually talk to, not just whoever shares a server with them. Click a name to pivot straight into everything that person's said to the target.
-- **OSINT Intel badges**: messages get auto-tagged when they touch location, work/income, identity, social/platform handles, technical info, and more, so the patterns surface instead of getting buried in scroll.
-- **Heatmap & Timeline**: exactly when the target is online, by hour and by month. A schedule, not a guess.
-- **Filters everywhere**: by file type, server/channel, mentioner, or live search, so a huge dataset narrows down to exactly what you're after in seconds.
-
-![Word Wall in the browser viewer (target details hidden)](images/word-wall.png)
-
-**How much you get back scales with how much the target talks.** A quiet member you barely share a channel with will only produce a thin file. Someone active, hundreds or thousands of messages, files, and mentions, turns into a genuinely detailed picture of who they are, what they're into, who they actually know, and when they're around.
+A terminal-based OSINT tool that sweeps your shared Discord servers for messages, files, and mentions tied to a target user ID. **The terminal only collects the raw data. The browser viewer it opens afterward is what turns that data into a profile.**
 
 ---
 
@@ -46,48 +24,74 @@ People forget what they've put out there. Months or years of messages spread acr
 
 This tool logs in as a real Discord **user account** (not a bot) and drives it programmatically to search message history, optionally across several accounts ("workers") at once to go faster. That is automation of a user account, which is against **[Discord's Terms of Service](https://discord.com/terms)**.
 
-- **Every account you point at this tool, the main one and any worker tokens, can be disabled or permanently banned.** Do not use an account you aren't prepared to lose, and never use it on someone else's account without their knowledge.
-- **You need authorization from the people you're collecting data on.** A scan doesn't just pull the target's own messages, depending on the mode, it also reads what other members posted (mentions of the target, shared channels, etc.). Only run this where you have a legitimate, consented basis to do so: your own accounts and data, explicit written permission from the target and, where relevant, the server owner, or an authorized security/investigative engagement. "I have access" is not the same as "I have permission."
+- **Every account you point at this tool, the main one and any worker tokens, can be disabled or permanently banned.** Do not use an account you aren't prepared to lose.
+- **You need authorization from the people you're collecting data on.** A scan doesn't just pull the target's own messages. Depending on the mode it also reads what other members posted (mentions of the target, shared channels, and so on). Only run this where you have a legitimate, consented basis: your own accounts and data, explicit written permission from the target and, where relevant, the server owner, or an authorized security or investigative engagement. "I have access" is not the same as "I have permission."
 - Delays, cooldowns, and rate-limit backoff are built in to reduce (not eliminate) the chance of getting flagged. They can be tuned in **Settings**, but no setting makes this safe from Discord's own detection or removes the need for consent.
 
 If you don't have clear authorization to investigate the target and the server(s) involved, don't run this.
 
 ---
 
-## Table of Contents
+## What you get
 
-- [What you actually get](#what-you-actually-get)
-- [First-time setup](#first-time-setup)
-- [Usage](#usage)
-- [Navigating the UI](#navigating-the-ui)
-- [Multiple accounts / workers](#multiple-accounts--workers)
-- [Modes](#modes)
-- [Heatmap & Timeline](#heatmap--timeline)
-- [Sort Files](#sort-files)
-- [Settings](#settings)
-- [Output](#output)
-- [Notes](#notes)
+People forget what they've put out there. Months or years of messages spread across a dozen servers add up to more than most people could recall themselves. Nyx pulls all of it into one place, and the browser viewer turns that raw dump into a profile instead of a wall of text:
+
+- **Word Wall**: the target's most-used words, sized by how often they say them.
+- **Mentions and Ranked Mentioners**: who pings them and how often, ranked. This is their real social graph, the accounts they actually talk to. Click a name to pivot into everything that person has said to the target.
+- **OSINT intel tags**: messages are auto-tagged when they touch location, work and income, identity, social handles, technical details, physical details, credentials, places and more. Counters cover every message in the export, and filters stay instant on exports with tens of thousands of messages.
+  - **Bannable** flags anything that breaks Discord's Terms of Service, about 1,600 phrases across underage users (under 13), child safety, selfbots and token theft, phishing and fake Nitro scams, account and server trading, harassment and threats, doxxing and swatting, hate speech and extremism, self-harm promotion, illegal goods and carding, financial scams, adult solicitation and gore, raids and mass reporting, ban evasion, and cheats and piracy.
+  - **Device** recognises files that came from a specific device or app (iPhone photos and screen recordings, Google Pixel, Android, WhatsApp, Snapchat, Windows and macOS screenshots, Sony, Nikon, GoPro, DJI, camera RAW and more) and adds a "from:" chip. Detection is based on file names, not metadata, so treat it as a strong hint rather than proof.
+- **Heatmap and Timeline**: exactly when the target is online, by hour and by month, with a daily breakdown per month.
+- **Sort Files**: sorts the downloaded images into categories with a local AI image classifier.
+- **Search and filters**: by file type, server and channel, mentioner, or live search. Press Enter in the search box to search every message in the export.
+
+![Word Wall in the browser viewer (target details hidden)](images/word-wall.png)
+
+**How much you get back scales with how much the target talks.** A quiet member you barely share a channel with produces a thin file. Someone active, with hundreds or thousands of messages, files, and mentions, turns into a detailed picture of what they are into, who they know, and when they are around.
 
 ---
 
-## First-time setup
+## Table of contents
 
-Nyx ships as a standalone folder, no Node.js, no installing anything. **Windows only.** It's just:
+- [Requirements](#requirements)
+- [Quick start](#quick-start)
+- [Usage](#usage)
+- [Navigating the UI](#navigating-the-ui)
+- [Multiple accounts and workers](#multiple-accounts-and-workers)
+- [Modes](#modes)
+- [Heatmap and Timeline](#heatmap-and-timeline)
+- [Sort Files](#sort-files)
+- [Settings](#settings)
+- [Output](#output)
+- [Building a standalone executable](#building-a-standalone-executable)
+- [Development](#development)
+- [Project structure](#project-structure)
+
+---
+
+## Requirements
+
+- **Node.js 20 or newer** ([nodejs.org](https://nodejs.org)).
+- A Discord **user token** for an account that shares servers with the target.
+- Optional, for **Sort Files**: Python 3.9 or newer. The dependencies (about 200 MB) are installed on first use into a private `.nyx-venv` folder, after asking.
+
+Nyx runs on Windows, macOS, and Linux.
+
+## Quick start
 
 ```
-nyx.exe
-viewer.css
-workerDisplay.js
-sort_images.py
+git clone https://github.com/rScrewed/NyX-Sniffer.git
+cd NyX-Sniffer
+npm install
+npm start
 ```
 
-Keep all four in the same folder, don't move the `.exe` out on its own.
+Or download the source zip from the [releases page](https://github.com/rScrewed/NyX-Sniffer/releases), unzip it, and run `npm install` and `npm start` inside the folder.
 
-> **Scanned and clean.** The v1 release `.exe` was checked on VirusTotal: [view the scan](https://www.virustotal.com/gui/file/10c8a641f43cb53a2d523811657e549e582cb230715fa579c0ca65572b3a9e7c).
+On the first run:
 
-1. **Run it.** Double-click `nyx.exe`.
-2. **Click through the token prompt**: paste your Discord user token and hit Enter. A `.env` file gets created next to the `.exe` and your token is saved into it, so you won't be asked again on future runs.
-3. **(Optional) Add more workers for speed.** Open the `.env` file that just got created (any text editor) and, instead of the single `Token=` line, add numbered ones:
+1. **Paste your Discord token** when prompted. A `.env` file is created in the folder you ran Nyx from and the token is saved into it, so you are not asked again.
+2. **(Optional) add more workers for speed.** Open `.env` and, instead of the single `Token=` line, add numbered ones:
 
    ```
    Token1=first_discord_token
@@ -95,36 +99,31 @@ Keep all four in the same folder, don't move the `.exe` out on its own.
    Token3=third_discord_token
    ```
 
-   [More workers = faster results](#multiple-accounts--workers), this is the single biggest speed lever in the whole tool.
+   [More workers means faster results](#multiple-accounts-and-workers). This is the biggest speed lever in the whole tool.
 
    ![Example .env with numbered worker tokens (values hidden)](images/env.png)
 
-That's it, next time you just run the `.exe` and it drops you straight into the start menu.
+3. Pick **New Scan** from the start menu and enter the target's user ID.
 
----
+> **Finding a user ID:** enable Developer Mode in Discord settings, right-click any username, and choose **Copy User ID**.
+
+Results, `.env`, and interrupted-scan folders are written to the directory you start Nyx from. They are git-ignored by default. Don't remove that before pushing anywhere, since they can contain real personal data.
 
 ## Usage
 
-Just run the executable, everything else is interactive:
-
 ```
-nyx.exe
+npm start
 ```
 
-(double-click it, or run it from a command prompt in that folder)
+or, equivalently, `node bin/nyx.js`.
 
 From the start menu you can start a **New Scan**, **Continue** an interrupted one, **Open Viewer** on past results, **Sort Files** from a finished scan, or change **Settings**.
 
 A new scan walks you through:
 
-1. **Token**: skipped automatically once it's saved in `.env` (see [First-time setup](#first-time-setup))
-2. **Target ID**: the user ID to investigate
-3. **Server selection**: pick specific servers by number (`1,2,3`) or press Enter to scan all
-4. **Mode**: choose what to collect
-5. **Heatmap**: optional activity breakdown by hour
-6. **Browser viewer**: open results in a local web UI when done
-
-> **Finding a user ID:** Enable Developer Mode in Discord settings → right-click any username → **Copy User ID**.
+1. **Target ID**: the user ID to investigate
+2. **Mode**: choose what to collect
+3. **Browser viewer**: opens automatically when the scan finishes
 
 Scans can be interrupted (Ctrl+C) and resumed later from the start menu.
 
@@ -136,38 +135,39 @@ Scans can be interrupted (Ctrl+C) and resumed later from the start menu.
 
 ![Discovering servers](images/discovering-servers.png)
 
+### Re-open saved results
+
+```
+npm start -- --view
+```
+
+Picks up any output folder automatically. Pass a folder name to open a specific one:
+
+```
+npm start -- --view Everything_username
+```
+
+If a scan was interrupted before writing JSON (a `_tmp_` folder), the viewer falls back to a paginated file browser with image, video, and audio filters.
+
 ---
 
 ## Navigating the UI
 
-Nyx has two "screens," and they do very different jobs: the **terminal menu** collects the raw data, and the **browser viewer** is where that data actually becomes a profile.
+Nyx has two screens. The **terminal menu** collects the raw data, and the **browser viewer** turns it into a profile.
 
-### Terminal menu: collects the data
+### Terminal menu
 
-Everything here is number-driven, there's no arrow-key navigation. Every screen lists options as `[1]`, `[2]`, etc., you type the number (or a letter like `S` for Settings) and hit Enter, and `0` (or `b`) always backs out to the previous screen. It just runs the scan and saves files, no analysis happens here. The flow you'll walk through:
+Everything is number-driven. Every screen lists options as `[1]`, `[2]`, and so on. Type the number (or a letter like `S` for Settings) and press Enter. `0` (or `b`) backs out to the previous screen. While a scan runs, a live status area (and, with several workers, a pinned row per worker) shows progress in place. **Ctrl+C** stops a scan safely, and it resumes later from **Continue Scan**.
 
-- **Start menu**: `[1]` New Scan, then Continue an interrupted scan, Open Viewer and Sort Files (each only available once you have past runs), `[S]` Settings.
-- **New Scan** walks you top to bottom: token (skipped automatically once saved in `.env`) → target user ID → pick servers by number (`1,2,3` or Enter for all) → pick a mode `[1-4]` → optional heatmap → optional browser viewer.
-- While a scan runs, a live status line and (with multiple workers) a pinned row per worker show progress in place, no scrolling spam.
-- **Ctrl+C** at any point safely stops the scan; it resumes later from **Continue Scan** on the start menu.
+### Browser viewer
 
-### Browser viewer: builds the profile
-
-Opens automatically when a scan finishes, or via `nyx.exe --view`. It's a normal clickable web page, and it's where the raw data the terminal collected turns into the actual profile described above:
-
-- **Tabs across the top** switch between All / Messages / Files / Mentions / Heatmap / Timeline / Word Wall.
-- **Word Wall**: the target's most frequently used words, sized by frequency; click a word to jump into Messages filtered by it.
-- **Mentions tab + Ranked Mentioners sidebar**: click any user in the ranking to filter the mentions feed to only their messages, for mapping out who the target actually talks to.
-- **OSINT Intel badges**: colored tags on messages that match a detection category (location, economics, identity, social, activities, technical, criminal, physical, credentials, places, bannable, device). Click a badge or the filter above the feed to highlight exactly what triggered it. Wordlists live in `wordlists.js` and can be edited. The counter on each filter button covers every message in the export, not just the page you're viewing, and filters stay instant even on exports with tens of thousands of messages.
-  - **Bannable** flags messages that break Discord's Terms of Service, about 1,600 phrases across underage users (under 13), child safety (grooming, sextortion), selfbots and token theft, phishing and fake Nitro/gift scams, account and server trading, harassment and threats, doxxing/swatting/DDoS, hate speech and violent extremism, self-harm promotion, illegal goods and carding, financial scams, non-consensual/adult solicitation and gore, raids and mass reporting, ban evasion, and cheats/piracy.
-  - **Device** guesses where a file came from (iPhone, Android, WhatsApp, screenshot and so on) from its filename, and adds a "from:" chip under the message.
-- **Heatmap / Timeline tabs**: hourly and monthly activity as charts; click a month on the Timeline for a daily breakdown.
-- **Sidebar** lists every server/channel scanned, click one to jump straight to it; the channel you're scrolled to auto-highlights as you go.
-- **Search bar** live-filters the page you're on as you type; press Enter to search every message in the export. The viewer shows 500 messages per page.
-- **File type filters** narrow the Files tab to images, videos, audio, or other.
+- **Tabs** switch between All, Messages, Files, Mentions, Heatmap, Timeline, and Word Wall.
+- **Word Wall**: click a word to search every message for it.
+- **Mentions tab and Ranked Mentioners**: click any user in the ranking to filter the mentions feed to their messages.
+- **OSINT intel badges**: coloured tags on messages that match a category. Click a badge or a filter button to show only those messages. The wordlist panel (the gear button) lets you switch individual terms off, and the counters update across the whole export.
+- **Sidebar** lists every server and channel, and highlights where you are as you scroll.
+- **Search bar** filters the current page as you type. Press Enter to search everything. The viewer shows 500 messages per page, and the arrow keys change pages.
 - **Jump links** on any message open the original in Discord.
-
-**OSINT Intel badges, examples** *(usernames, avatars, IDs, and images blurred)*
 
 Filtering the feed by a category shows only the messages that tripped it:
 
@@ -179,31 +179,11 @@ Filtering the feed by a category shows only the messages that tripped it:
 
 ![Physical category, tattoos, injuries, and other physical details](images/osint-physical.png)
 
-#### Re-open saved results
-
-```
-nyx.exe --view
-```
-
-Picks up any output folder automatically. Pass a folder name to open a specific one:
-
-```
-nyx.exe --view Everything_username
-```
-
-If a scan was interrupted before writing JSON (e.g. a `_tmp_` folder), the viewer falls back to a paginated file browser with image/video/audio type filters:
-
-```
-nyx.exe --view _tmp_123456789
-```
-
 ---
 
-## Multiple accounts / workers
+## Multiple accounts and workers
 
-**More workers = faster results, full stop, this matters more than any other setting in the tool.** A single-token scan works through a server's message history alone; each extra worker token splits that same range across another account running in parallel, so scan time drops roughly in proportion to how many you add. If you're scanning a large or very active server and want it done quickly, adding workers is the single biggest lever you have, more than tuning delays, more than narrowing servers, more than picking a lighter mode.
-
-To split a scan across several accounts, number your tokens instead of using a single `Token=`:
+**More workers means faster results.** A single-token scan works through a server's message history alone. Each extra token splits the same range across another account running in parallel, so scan time drops roughly in proportion to the number of workers. Number your tokens instead of using a single `Token=`:
 
 ```
 Token1=first_discord_token
@@ -211,15 +191,15 @@ Token2=second_discord_token
 Token3=third_discord_token
 ```
 
-Each token is checked with a live progress bar, then Nyx splits the message range for each active server across all workers and runs them in parallel, with a pinned status row per worker.
+Each token is checked with a live progress bar, then Nyx splits the message range for each active server across all workers and runs them in parallel.
 
 ![Workers collecting data in parallel (target details hidden)](images/workers-collecting.png)
 
 A few things to know:
 
-- **This multiplies the ban risk described above**: every token used is a real account being automated.
-- If a worker's account isn't a member of a server the target is in, that worker just skips it (reported as private). There's no automatic joining; join manually with that account first, or scan with a single token instead.
-- If a worker gets rate limited with only a page or two of its range left, an already-finished worker will lend its connection to finish that last bit instead of making the rate-limited one sit through the full backoff.
+- **This multiplies the ban risk described above.** Every token used is a real account being automated.
+- A worker only receives work for servers its account is a member of. There is no automatic joining. Join manually with that account first, or scan with a single token.
+- If a worker gets rate limited near the end of its range, a finished worker lends its connection to complete the last pages instead of everyone waiting out the full backoff.
 
 ---
 
@@ -227,37 +207,19 @@ A few things to know:
 
 | # | Mode | Description |
 |---|------|-------------|
-| 1 | **Messages** | Every message the target sent across selected servers |
-| 2 | **Files** | Only messages with attachments, images, videos, documents |
+| 1 | **Messages** | Every message the target sent across the servers you share |
+| 2 | **Files** | Only messages with attachments, images, videos, and documents |
 | 3 | **Mentions** | Every message where the target was pinged, ranked by who sends them most |
-| 4 | **All** | Messages + files + mentions in one pass |
+| 4 | **All** | Messages, files, and mentions in one pass |
 
-### Messages
+Files are downloaded once per unique file, even when the same file appears in many messages or is reached by several workers.
 
-Good starting point. Text only, fast, easy to read through.
+## Heatmap and Timeline
 
-### Files
+Available with **Messages** and **All**. Both are shown in the browser viewer.
 
-Files shared on Discord rarely have metadata stripped, what you download is often straight from the device. Output is focused and clean.
-
-### Mentions
-
-Builds a ranked list of who interacts with the target the most. A solid pivot point for mapping connections and deciding who to look into next.
-
-### All
-
-Runs everything in one pass. Mentions are collected alongside messages so you get the full picture without running separate scans. Takes longer depending on activity level.
-
----
-
-## Heatmap & Timeline
-
-Available with **Messages** and **All** modes. Both are built and shown in the browser viewer, not the terminal.
-
-- **Heatmap**: the top 5 most active 1-hour windows in your local timezone, plus a full 24-hour breakdown saved to `heatmap.txt` and shown as a bar chart in the viewer. Useful for profiling daily schedule.
-- **Timeline**: monthly message volume over the full scanned history, shown as an interactive chart in the viewer; click a month for a daily breakdown.
-
-Times are displayed in AM/PM format.
+- **Heatmap**: the top five most active one-hour windows in your local timezone, plus a full 24-hour breakdown saved to `heatmap.txt`.
+- **Timeline**: monthly message volume over the full scanned history. Click a month for a daily breakdown.
 
 ![Heatmap, messages per hour of day, in the viewer](images/heatmap.png)
 
@@ -267,32 +229,29 @@ Times are displayed in AM/PM format.
 
 ## Sort Files
 
-Sorts the images downloaded by a finished scan into folders by what's in them, using a local AI image classifier (CLIP). Nothing is uploaded anywhere. Pick **Sort Files** from the start menu, choose a scan, choose a quality level, and it runs.
+Sorts the images downloaded by a finished scan into folders by what is in them, using a local AI image classifier (CLIP). Nothing is uploaded anywhere. Pick **Sort Files** from the start menu, choose a scan, choose a quality level, and it runs. You can also run the script directly:
 
-- **23 built-in categories**: people/selfies, documents and IDs, chat screenshots, app screenshots, gaming, outdoor locations, home interiors, vehicles, animals, tech hardware, code/terminal, money and finance, weapons, drugs and alcohol, adult content, memes, anime/art, food, nature, fashion, sports, media, and text/graphics.
-- **New categories are found automatically**: images that don't fit any built-in category are grouped by visual similarity and each group is named on its own, as `auto_<name>` folders.
-- **Quality levels**: **Fast** is quickest but rougher, **Balanced** is the default, **Best** uses a larger model and is the most accurate but slowest. A GPU speeds all of them up a lot; large scans on CPU can take hours.
-- **Originals are never touched.** Results go to `sorted/<category>/` inside the scan folder as links (or copies), and `sorted/index.json` records each image's category, confidence and runner-up guesses, so you can check the shaky ones. Re-running is fast because the analysis is cached.
-- **Requirements**: Python 3.9 or newer installed, plus internet the first time. On first use Nyx asks before installing its dependencies (about 200 MB, kept in a private `.nyx-venv` folder next to the exe) and the model downloads on first run. Nothing is installed system-wide.
+```
+python python/sort_images.py Everything_username --quality balanced
+```
 
-Categories are plain text prompts at the top of `sort_images.py` and can be edited.
-
----
+- **23 built-in categories**: people and selfies, documents and IDs, chat screenshots, app screenshots, gaming, outdoor locations, home interiors, vehicles, animals, tech hardware, code and terminals, money and finance, weapons, drugs and alcohol, adult content, memes, anime and art, food, nature, fashion, sports, media, and text graphics. The categories are plain text prompts at the top of `python/sort_images.py` and can be edited.
+- **New categories are found automatically**: images that do not fit any built-in category are grouped by visual similarity, and each group is named on its own as an `auto_<name>` folder.
+- **Quality levels**: **Fast** is quickest but rougher, **Balanced** is the default, and **Best** uses a larger model and is the most accurate but slowest. A GPU speeds all of them up considerably, and large scans on CPU can take hours.
+- **Originals are never touched.** Results go to `sorted/<category>/` inside the scan folder as links (or copies with `--copy`), and `sorted/index.json` records each image's category, confidence, and runner-up guesses. Re-running is fast because the image analysis is cached.
 
 ## Settings
 
-From the start menu, **Settings** lets you tune the pacing Nyx uses when talking to Discord's API:
+From the start menu, **Settings** tunes the pacing Nyx uses when talking to Discord's API. Values are stored in `.env`.
 
-| Setting | What it controls |
-|---|---|
-| Page delay | Wait between consecutive search result pages |
-| 1k cooldown | Longer pause every ~1,000 messages collected |
-| Server gap | Wait between finishing one server and starting the next |
-| Rate limit wait | Minimum backoff after Discord returns a 429 |
+| Setting | `.env` keys | What it controls |
+|---|---|---|
+| Page delay | `SEARCH_DELAY_MIN_MS`, `SEARCH_DELAY_MAX_MS` | Wait between consecutive search result pages |
+| 1k cooldown | `COOLDOWN_1K_MS` | Longer pause every 1,000 messages collected |
+| Server gap | `SERVER_DELAY_MIN_MS`, `SERVER_DELAY_MAX_MS` | Wait between finishing one server and starting the next |
+| Rate limit wait | `RATE_LIMIT_WAIT_MS` | Minimum backoff after Discord returns a 429 |
 
-These exist to reduce the chance of triggering Discord's automation detection, they don't eliminate it, and shortening them increases risk to the account(s) in use.
-
----
+These exist to reduce the chance of triggering Discord's automation detection. They do not eliminate it, and shortening them increases the risk to the account(s) in use.
 
 ## Output
 
@@ -311,24 +270,57 @@ Everything_username/
 | `messages.txt` | Human-readable report |
 | `mentions.json` | Mention data with ranked senders |
 | `mentions.txt` | Human-readable mention report |
-| `heatmap.txt` | Hourly activity breakdown |
+| `heatmap.json`, `heatmap.txt` | Hourly activity breakdown |
 | `timeline.json` | Monthly message volume, used by the viewer |
-| `files/` | Downloaded attachments (each unique file is downloaded once, even if it's posted in several messages) |
-| `sorted/` | Images sorted by category, plus `index.json` (after running **Sort Files**) |
+| `profile.json` | The target's public profile details |
+| `files/` | Downloaded attachments, in `images`, `gifs`, `videos`, `audio`, `documents`, and `other` folders |
+| `sorted/` | Images sorted by category, plus `index.json` (after **Sort Files**) |
 
-These output folders (and `_tmp_*` in-progress scans) are git-ignored by default, don't remove that from `.gitignore` before pushing, since they can contain real personal data collected during a scan.
-
----
-
-## Notes
-
-- Rate limits are handled automatically, the tool will wait and resume without losing progress.
-- The token prompt hides input. Paste and press Enter.
-- Server selection lets you narrow a scan to one or a few servers, which is faster and useful for targeted investigations.
-- The OSINT wordlists live in `wordlists.js` and can be edited to add or remove detection terms.
+The [AI analyst prompt](docs/ai-analyst.md) describes this layout and can be given to an AI assistant to write a footprint assessment from a scan.
 
 ---
 
-## Support
+## Building a standalone executable
 
-Nyx is free. If it's useful to you, you can support development at **[ko-fi.com/rscrewed](https://ko-fi.com/rscrewed)**.
+Nyx can be packaged as a single executable (a Node single-executable application) so people without Node.js can run it:
+
+```
+npm run build            # executable for the current platform, in dist/
+npm run build:windows    # Windows executable, in dist-win/, from any platform
+```
+
+Ship the whole output folder: the executable needs `viewer.css`, `viewer-client.js`, and `sort_images.py` next to it. The build downloads the official Node binary and verifies its checksum.
+
+## Development
+
+```
+npm install
+npm test         # unit and integration tests
+npm run lint     # ESLint
+```
+
+See [docs/architecture.md](docs/architecture.md) for how the code is organised. Contributions are welcome. Please run the tests and the linter before opening a pull request.
+
+## Project structure
+
+```
+bin/nyx.js               entry point
+src/cli/                 argument handling
+src/app/                 interactive application flow
+src/config/              runtime paths, .env, settings, scan options
+src/discord/             API client, profiles, search queries
+src/scan/                search engine, collectors, sequential and parallel runners
+src/files/               attachment downloads and folders
+src/output/              reports, heatmap, timeline
+src/terminal/            terminal UI
+src/viewer/              local web viewer (server, rendering, intel tagging, browser client)
+src/sorting/             launcher for the image sorter
+python/sort_images.py    CLIP image classification
+scripts/                 executable build
+tests/                   tests
+docs/                    documentation
+```
+
+## License
+
+[MIT](LICENSE)
