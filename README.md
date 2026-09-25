@@ -2,7 +2,6 @@
 
 <p align="center">
   <b>Palantir for Discord, built on public info.</b><br>
-  Turn a Discord user ID into a profile.<br>
   Parallel scraper · word wall · activity schedule · social graph · OSINT intel tags<br>
   AI image sorter · device detection · Terms of Service flags<br>
   <sub>Open source · By rScrewed</sub>
