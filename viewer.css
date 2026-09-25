@@ -642,3 +642,11 @@ span.ca-chip { cursor: default }
 .thumb img:hover { transform: scale(1.02) }
 .vid-wrap, .aud-wrap { border: 1px solid var(--line); background: var(--panel); padding: 8px; max-width: 340px; border-radius: var(--r-md) }
 .fn { font-family: var(--mono); font-size: 10px; color: var(--ink-mute); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px }
+
+/* file-source ("from: iPhone") chips under a message */
+.src-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.src-chip{
+  font:11px/1.5 ui-monospace,'JetBrains Mono',monospace;
+  color:#8b7cf0;border:1px solid #3a2f5a;background:#15121f;
+  border-radius:100px;padding:2px 9px;letter-spacing:.02em;
+}

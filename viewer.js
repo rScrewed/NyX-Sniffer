@@ -2,6 +2,7 @@ const http            = require('http');
 const fs              = require('fs');
 const path            = require('path');
 const INTEL_WORDLISTS = require('./wordlists');
+const { messageSources } = require('./fileSource');
 const { resourceDir } = require('./resourceDir');
 const RESOURCE_DIR    = resourceDir(__dirname);
 
@@ -116,15 +117,17 @@ function renderMessageCard(m, opts) {
   const avSrc     = id ? avatarUrl(id, av, discrim) : null;
   const dataHas    = messageDataHas(m);
   const senderAttr = opts.mode === 'mentions' ? ' data-sender="' + escapeHtml(id || '') + '"' : '';
-  const intelTags  = opts.intelRegexes ? tagMessageIntel(m.content || '', opts.intelRegexes) : '';
+  const srcList    = messageSources(m);
+  const intelTags  = getIntel(m);
   const intelAttr  = intelTags ? ' data-intel="' + escapeHtml(intelTags) + '"' : '';
+  const deviceAttr = srcList.length ? ' data-device="1"' : '';
 
   const hasTypes  = dataHas.split(' ').filter(Boolean);
   const hasFiles  = hasTypes.some(t => t === 'image' || t === 'video' || t === 'audio' || t === 'other');
   const hasCls    = hasTypes.map(t => 'has-' + t).join(' ') + (hasFiles ? ' has-files' : '');
 
   const parts = [];
-  parts.push('<article class="msg ' + hasCls + '" data-has="' + dataHas + '"' + senderAttr + intelAttr + '>');
+  parts.push('<article class="msg ' + hasCls + '" data-has="' + dataHas + '"' + senderAttr + intelAttr + deviceAttr + '>');
   parts.push('  <div class="msg-head">');
   if (avSrc) {
     parts.push('    <img class="av" src="' + escapeHtml(avSrc) + '" alt="">');
@@ -169,6 +172,13 @@ function renderMessageCard(m, opts) {
     parts.push('  </div>');
   }
 
+  if (srcList.length) {
+    const uniq = [...new Set(srcList.map(s => s.source))];
+    parts.push('  <div class="src-chips">' +
+      uniq.map(s => '<span class="src-chip">from: ' + escapeHtml(s) + '</span>').join('') +
+      '</div>');
+  }
+
   parts.push('</article>');
   return parts.join('\n');
 }
@@ -211,9 +221,10 @@ function termRegex(t, flags) {
   return new RegExp(pre + esc + suf, flags || 'i');
 }
 
-function buildIntelRegexes() {
+function buildIntelRegexes(offSet) {
   const out = {};
-  for (const [cat, terms] of Object.entries(INTEL_WORDLISTS)) {
+  for (const [cat, allTerms] of Object.entries(INTEL_WORDLISTS)) {
+    const terms = offSet ? allTerms.filter((t) => !offSet.has(cat + ':' + t)) : allTerms;
     if (!terms.length) continue;
     const alts = terms
       .slice()
@@ -239,12 +250,82 @@ function tagMessageIntel(text, regexes) {
   return matched.join(' ');
 }
 
+// Tags are computed once per message and cached: a 20k-message export
+// would otherwise redo every regex on every page load / filter click.
+const _intelCache = new WeakMap();
+let   _intelRegexes = null;
+
+function getIntel(m) {
+  let t = _intelCache.get(m);
+  if (t !== undefined) return t;
+  if (!_intelRegexes) _intelRegexes = buildIntelRegexes();
+  t = tagMessageIntel(m.content || '', _intelRegexes);
+  if (messageSources(m).length) t = (t ? t + ' ' : '') + 'device';
+  _intelCache.set(m, t);
+  return t;
+}
+
 function filterByIntel(items, category) {
-  const terms = INTEL_WORDLISTS[category] || [];
-  return items.filter((m) => {
-    const text = (m.content || '').toLowerCase();
-    return terms.some((t) => termRegex(t).test(text));
-  });
+  return items.filter((m) => getIntel(m).split(' ').includes(category));
+}
+
+// Per-category totals over the WHOLE data set (not just the visible page).
+function countIntel(items) {
+  const counts = {};
+  for (const m of items) {
+    const t = getIntel(m);
+    if (!t) continue;
+    for (const cat of t.split(' ')) counts[cat] = (counts[cat] || 0) + 1;
+  }
+  return counts;
+}
+
+// Same, but with some wordlist terms switched off ("cat:term" keys).
+const _offRegexCache = new Map();
+function countIntelWithout(items, off) {
+  const offSet = new Set(off);
+  const key = [...offSet].sort().join('\n');
+  let res = _offRegexCache.get(key);
+  if (!res) {
+    res = buildIntelRegexes(offSet);
+    if (_offRegexCache.size >= 8) _offRegexCache.delete(_offRegexCache.keys().next().value);
+    _offRegexCache.set(key, res);
+  }
+  const counts = {};
+  for (const m of items) {
+    const text = m.content || '';
+    if (text.trim()) {
+      for (const [cat, re] of Object.entries(res)) if (re.test(text)) counts[cat] = (counts[cat] || 0) + 1;
+    }
+    if (getIntel(m).split(' ').includes('device')) counts.device = (counts.device || 0) + 1;
+  }
+  return counts;
+}
+
+// Everything below depends only on the loaded data, not on the page being
+// viewed, so it is computed on first use and reused for every request.
+const _derived = new WeakMap();
+function getDerived(data, items, isMentions) {
+  let d = _derived.get(data);
+  if (d) return d;
+  const tlDaily = {};
+  for (const m of items) {
+    if (!m.timestamp) continue;
+    const dt = new Date(m.timestamp);
+    if (isNaN(dt.getTime())) continue;
+    const mo = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
+    const dy = mo + '-' + String(dt.getDate()).padStart(2, '0');
+    if (!tlDaily[mo]) tlDaily[mo] = {};
+    tlDaily[mo][dy] = (tlDaily[mo][dy] || 0) + 1;
+  }
+  d = {
+    counts:   countIntel(items),
+    tlDaily,
+    fileCount: items.reduce((n, m) => n + (m.files ? m.files.length : 0), 0),
+    wordWall: !isMentions ? computeWordWall(data.messages || [], 70) : [],
+  };
+  _derived.set(data, d);
+  return d;
 }
 
 const STOPWORDS = new Set([
@@ -290,13 +371,21 @@ function computeWordWall(messages, limit) {
     .map(([word, count]) => ({ word, count }));
 }
 
-function buildHTML(data, mode, page, intelFilter, mentionsData, heatmapData, timelineData, profileData) {
+function buildHTML(data, mode, page, intelFilter, mentionsData, heatmapData, timelineData, profileData, query) {
   page = page || 0;
   const isMentions = mode === 'mentions';
-  let allItems     = (isMentions ? data.mentions : data.messages) || [];
+  const fullItems  = (isMentions ? data.mentions : data.messages) || [];
+  const derived    = getDerived(data, fullItems, isMentions);
+  let allItems     = fullItems;
 
-  if (intelFilter && INTEL_WORDLISTS[intelFilter]) {
+  if (intelFilter && (INTEL_WORDLISTS[intelFilter] || intelFilter === 'device')) {
     allItems = filterByIntel(allItems, intelFilter);
+  }
+  const q = (query || '').trim().toLowerCase();
+  if (q) {
+    allItems = allItems.filter((m) =>
+      (m.content || '').toLowerCase().includes(q) ||
+      (m.authorTag || m.senderTag || '').toLowerCase().includes(q));
   }
 
   const totalCount = allItems.length;
@@ -309,8 +398,6 @@ function buildHTML(data, mode, page, intelFilter, mentionsData, heatmapData, tim
   const targetAv   = data.targetAvatar
     ? avatarUrl(data.userId, data.targetAvatar, null)
     : avatarUrl(data.userId, null, null);
-
-  const intelRegexes = buildIntelRegexes();
 
   const sectionParts = [];
   let _si = 0;
@@ -326,7 +413,6 @@ function buildHTML(data, mode, page, intelFilter, mentionsData, heatmapData, tim
           targetId:     data.userId,
           targetTag:    data.username,
           targetAvatar: data.targetAvatar,
-          intelRegexes,
         }));
       }
       sectionParts.push('</div>');
@@ -351,7 +437,7 @@ function buildHTML(data, mode, page, intelFilter, mentionsData, heatmapData, tim
         const list = mentionGrouped[sv][ch];
         mp.push('<div class="chan"><div class="chan-head" id="ment-srv-' + _msi + '-ch-' + _mci + '"><span class="ch">' + escapeHtml(ch) + '</span><span class="cn">' + list.length + ' mention' + (list.length === 1 ? '' : 's') + '</span></div>');
         for (const m of list) {
-          mp.push(renderMessageCard(m, { mode: 'mentions', targetId: data.userId, targetTag: data.username, targetAvatar: data.targetAvatar, intelRegexes }));
+          mp.push(renderMessageCard(m, { mode: 'mentions', targetId: data.userId, targetTag: data.username, targetAvatar: data.targetAvatar }));
         }
         mp.push('</div>');
         _mci++;
@@ -367,6 +453,7 @@ function buildHTML(data, mode, page, intelFilter, mentionsData, heatmapData, tim
     location:'#7dd3fc', economics:'#4ade80', identity:'#f87171',
     social:'#c084fc', activities:'#fb923c', technical:'#facc15',
     criminal:'#ff4d4d', physical:'#a3e635', credentials:'#f43f5e', places:'#38bdf8',
+    bannable:'#ef4444',
   };
   const termsPanelHtml = '<div id="terms-overlay" class="terms-overlay hidden"></div>' +
     '<div id="terms-panel" class="terms-panel hidden">' +
@@ -385,22 +472,28 @@ function buildHTML(data, mode, page, intelFilter, mentionsData, heatmapData, tim
 
   const totalLine = isMentions
     ? (totalCount + ' mentions  ·  ' + (data.mentioners ? data.mentioners.length : 0) + ' unique senders')
-    : (totalCount + ' messages  ·  ' + (allItems || []).reduce((n, m) => n + (m.files ? m.files.length : 0), 0) + ' files');
+    : (totalCount + ' messages  ·  ' + (intelFilter || q ? allItems.reduce((n, m) => n + (m.files ? m.files.length : 0), 0) : derived.fileCount) + ' files');
 
-  const intelParam = intelFilter ? '&intel=' + intelFilter : '';
+  const intelParam = (intelFilter ? '&intel=' + encodeURIComponent(intelFilter) : '') + (q ? '&q=' + encodeURIComponent(query.trim()) : '');
   const prevBtn = safePage > 0
     ? '<a class="pbtn" href="/?page=' + (safePage - 1) + intelParam + '">‹ prev</a>'
     : '<span class="pbtn disabled">‹ prev</span>';
   const nextBtn = safePage < totalPages - 1
     ? '<a class="pbtn" href="/?page=' + (safePage + 1) + intelParam + '">next ›</a>'
     : '<span class="pbtn disabled">next ›</span>';
-  const clearIntel = intelFilter
-    ? '  <a class="pbtn" href="/?page=0" style="border-color:#f87171;color:#f87171">✕ clear ' + intelFilter + '</a>'
-    : '';
-  const pagerBlock = (totalPages > 1 || intelFilter)
+  const clearQs = function(drop) {
+    const parts = [];
+    if (intelFilter && drop !== 'intel') parts.push('intel=' + encodeURIComponent(intelFilter));
+    if (q && drop !== 'q') parts.push('q=' + encodeURIComponent(query.trim()));
+    return '/?page=0' + (parts.length ? '&' + parts.join('&') : '');
+  };
+  const clearIntel =
+    (intelFilter ? '  <a class="pbtn" href="' + clearQs('intel') + '" style="border-color:#f87171;color:#f87171">✕ clear ' + escapeHtml(intelFilter) + '</a>' : '') +
+    (q ? '  <a class="pbtn" href="' + clearQs('q') + '" style="border-color:#f87171;color:#f87171">✕ clear search</a>' : '');
+  const pagerBlock = (totalPages > 1 || intelFilter || q)
     ? '<div class="pager">' + prevBtn +
       '<span class="pinfo">page ' + (safePage + 1) + ' of ' + totalPages +
-      '  ·  ' + (startIdx + 1) + '–' + endIdx + ' of ' + totalCount + (intelFilter ? ' matching' : '') + '</span>' +
+      '  ·  ' + (totalCount ? startIdx + 1 : 0) + '–' + endIdx + ' of ' + totalCount + (intelFilter || q ? ' matching' : '') + '</span>' +
       nextBtn + clearIntel + '</div>'
     : '';
 
@@ -530,7 +623,7 @@ function buildHTML(data, mode, page, intelFilter, mentionsData, heatmapData, tim
 
   let wwHtml = '';
   let wwBtn  = '';
-  const wordWallWords = !isMentions ? computeWordWall(data.messages || [], 70) : [];
+  const wordWallWords = derived.wordWall;
   if (wordWallWords.length > 0) {
     const wwMax = wordWallWords[0].count;
     const wwMin = wordWallWords[wordWallWords.length - 1].count;
@@ -571,7 +664,7 @@ function buildHTML(data, mode, page, intelFilter, mentionsData, heatmapData, tim
     <button class="fbtn" data-main="files">Files</button>
     ${mentionsTabBtn}${hmBtn}${tlBtn}${wwBtn}
     <div class="f-sep"></div>
-    <input class="search-input" id="msg-search" type="text" placeholder="search messages…" autocomplete="off" spellcheck="false">
+    <input class="search-input" id="msg-search" type="text" placeholder="search this page…  (enter = search all ${fullItems.length})" value="${escapeHtml(query || '')}" autocomplete="off" spellcheck="false">
     <button class="fbtn" id="intel-toggle" title="toggle OSINT filters">OSINT</button>
     ${wordsBtn}
   </div>
@@ -583,37 +676,18 @@ function buildHTML(data, mode, page, intelFilter, mentionsData, heatmapData, tim
     <button class="fbtn" data-sub="other">Other</button>
   </div>
   <div class="intel-panel intel-hidden" id="intel-panel">
-    <button class="fbtn" data-intel="economics">Economics<span class="cnt"></span></button>
-    <button class="fbtn" data-intel="identity">Identity<span class="cnt"></span></button>
-    <button class="fbtn" data-intel="social">Social<span class="cnt"></span></button>
-    <button class="fbtn" data-intel="activities">Activities<span class="cnt"></span></button>
-    <button class="fbtn" data-intel="technical">Technical<span class="cnt"></span></button>
-    <button class="fbtn" data-intel="criminal">Criminal<span class="cnt"></span></button>
-    <button class="fbtn" data-intel="physical">Physical<span class="cnt"></span></button>
-    <button class="fbtn" data-intel="credentials">Credentials<span class="cnt"></span></button>
-    <button class="fbtn" data-intel="places">Places<span class="cnt"></span></button>
+    ${['economics','identity','social','activities','technical','criminal','physical','credentials','places','bannable','device'].map(function(c) {
+      const n = derived.counts[c] || 0;
+      return '<button class="fbtn' + (n ? '' : ' fbtn-zero') + '" data-intel="' + c + '">' + c.charAt(0).toUpperCase() + c.slice(1) + '<span class="cnt">' + (n ? ' ' + n : '') + '</span></button>';
+    }).join('\n    ')}
   </div>
 </div>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
   var INTEL   = ${JSON.stringify(INTEL_WORDLISTS)};
   var TL_DATA = ${JSON.stringify(timelineData ? timelineData.buckets : [])};
-  var TL_DAILY = ${JSON.stringify((function() {
-    const allMsgs = (isMentions ? data.mentions : data.messages) || [];
-    const db = {};
-    for (const m of allMsgs) {
-      if (!m.timestamp) continue;
-      try {
-        const d = new Date(m.timestamp);
-        if (isNaN(d.getTime())) continue;
-        const mo = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-        const dy = mo + '-' + String(d.getDate()).padStart(2, '0');
-        if (!db[mo]) db[mo] = {};
-        db[mo][dy] = (db[mo][dy] || 0) + 1;
-      } catch (_) {}
-    }
-    return db;
-  })())};
+  var TL_DAILY = ${JSON.stringify(derived.tlDaily)};
+  var INTEL_COUNTS = ${JSON.stringify(derived.counts)};
 
   var _urlP = new URLSearchParams(window.location.search);
   var main  = _urlP.get('main') || 'all';
@@ -627,7 +701,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
   var BADGE_COLORS = {
     location:'#7dd3fc', economics:'#4ade80', identity:'#f87171',
-    social:'#c084fc', activities:'#fb923c', technical:'#facc15'
+    social:'#c084fc', activities:'#fb923c', technical:'#facc15',
+    bannable:'#ef4444', device:'#8b7cf0'
   };
 
   function addIntelBadges() {
@@ -908,22 +983,40 @@ document.addEventListener('DOMContentLoaded',function(){
     if (e.key === 'Escape') closeDetail();
   });
 
-  function mkre(t, flags) {
-    var esc = t.replace(/[.*+?^\${}()|[\]\\]/g,'\\$&');
-    var pre = /^\w/.test(t) ? '\\b' : '';
-    var suf = /\w$/.test(t) ? '\\b' : '';
-    return new RegExp(pre + esc + suf, flags || 'i');
+  // One combined regex per category (not one RegExp per term per card) —
+  // with ~1600 bannable terms and 500 cards that used to be ~800k RegExp
+  // constructions per rescan / highlight pass.
+  function termPat(t) {
+    var esc = t.replace(/[.*+?^$\\{}()|\\[\\]\\\\]/g, '\\\\$&');
+    return (/^\\w/.test(t) ? '\\\\b' : '') + esc + (/\\w$/.test(t) ? '\\\\b' : '');
+  }
+  var _reCache = {}, _reVer = 0;
+  function catsRe(cats, flags) {
+    var key = cats.join(',') + '|' + flags + '|' + _reVer;
+    if (_reCache[key] !== undefined) return _reCache[key];
+    var terms = [];
+    cats.forEach(function(c) { terms = terms.concat(getActiveIntel(c)); });
+    terms = terms.filter(function(t, i, a) { return a.indexOf(t) === i; });
+    terms.sort(function(a, b) { return b.length - a.length; });
+    var re = terms.length ? new RegExp('(' + terms.map(termPat).join('|') + ')', flags) : null;
+    _reCache[key] = re;
+    return re;
   }
 
-  function scanIntel() {
-    Object.keys(INTEL).forEach(function(cat) {
+  function showCounts(counts) {
+    Object.keys(INTEL).concat(['device']).forEach(function(cat) {
       var btn = document.querySelector('.fbtn[data-intel="' + cat + '"]');
       if (!btn) return;
-      var count = document.querySelectorAll('.msg[data-intel~="' + cat + '"]').length;
+      var count = counts[cat] || 0;
       var cnt = btn.querySelector('.cnt');
       if (cnt) cnt.textContent = count ? ' ' + count : '';
       btn.classList.toggle('fbtn-zero', count === 0);
     });
+  }
+
+  // Counts are totals over every message in the export, not just this page.
+  function scanIntel() {
+    showCounts(INTEL_COUNTS);
     addIntelBadges();
   }
 
@@ -957,20 +1050,12 @@ document.addEventListener('DOMContentLoaded',function(){
       if (!body) return;
       if (body.dataset.orig === undefined) body.dataset.orig = body.textContent;
       var orig = body.dataset.orig;
-      var cats = cat ? [cat] : (card.dataset.intel || '').split(' ').filter(Boolean);
-      if (!cats.length) { body.textContent = orig; return; }
+      var have = (card.dataset.intel || '').split(' ').filter(Boolean);
+      var cats = cat ? (have.indexOf(cat) > -1 ? [cat] : []) : have;
+      var re = cats.length ? catsRe(cats, 'gi') : null;
+      if (!re) { body.textContent = orig; return; }
       var html = orig.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      var terms = [];
-      cats.forEach(function(c) { terms = terms.concat(getActiveIntel(c)); });
-      terms = terms.filter(function(t,i,a){return a.indexOf(t)===i;});
-      terms.sort(function(a,b){return b.length-a.length;});
-      terms.forEach(function(term) {
-        var esc = term.replace(/[.*+?^\${}()|[\]\\]/g,'\\$&');
-        var pre = /^\w/.test(term) ? '\\b' : '';
-        var suf = /\w$/.test(term) ? '\\b' : '';
-        html = html.replace(new RegExp(pre+'('+esc+')'+suf,'gi'),'<mark class="hl">$1</mark>');
-      });
-      body.innerHTML = html;
+      body.innerHTML = html.replace(re, '<mark class="hl">$1</mark>');
     });
   }
 
@@ -1122,26 +1207,33 @@ document.addEventListener('DOMContentLoaded',function(){
     highlightIntel(null);
   }
 
+  var _countReq = 0;
   function rescan() {
+    _reVer++;
+    var res = {};
+    Object.keys(INTEL).forEach(function(cat) {
+      var terms = getActiveIntel(cat);
+      res[cat] = terms.length ? catsRe([cat], 'i') : null;
+    });
     document.querySelectorAll('.msg').forEach(function(card) {
       var body = card.querySelector('.body');
-      var text = body ? body.textContent.toLowerCase() : '';
+      var text = body ? (body.dataset.orig !== undefined ? body.dataset.orig : body.textContent) : '';
       var matched = [];
-      Object.keys(INTEL).forEach(function(cat) {
-        var terms = getActiveIntel(cat);
-        for (var i = 0; i < terms.length; i++) {
-          if (mkre(terms[i].toLowerCase()).test(text)) { matched.push(cat); break; }
-        }
-      });
+      Object.keys(res).forEach(function(cat) { if (res[cat] && res[cat].test(text)) matched.push(cat); });
+      if (card.dataset.device) matched.push('device');
       card.dataset.intel = matched.join(' ');
     });
-    Object.keys(INTEL).forEach(function(cat) {
-      var btn = document.querySelector('.fbtn[data-intel="' + cat + '"]');
-      if (!btn) return;
-      var count = document.querySelectorAll('.msg[data-intel~="' + cat + '"]').length;
-      var cnt = btn.querySelector('.cnt');
-      if (cnt) cnt.textContent = count ? ' ' + count : '';
-    });
+
+    // totals across the whole export come from the server
+    if (disabledTerms.size === 0) {
+      showCounts(INTEL_COUNTS);
+    } else {
+      var req = ++_countReq;
+      fetch('/api/intel-counts?off=' + encodeURIComponent(JSON.stringify(Array.from(disabledTerms))))
+        .then(function(r) { return r.json(); })
+        .then(function(c) { if (req === _countReq) showCounts(c); })
+        .catch(function() {});
+    }
     addIntelBadges();
     var curIntel = new URLSearchParams(window.location.search).get('intel');
     highlightIntel(curIntel || null);
@@ -1199,6 +1291,15 @@ document.addEventListener('DOMContentLoaded',function(){
   var searchEl = document.getElementById('msg-search');
   var searchTimer = null;
   if (searchEl) {
+    // typing filters the page you're on; Enter searches the whole export
+    searchEl.addEventListener('keydown', function(e) {
+      if (e.key !== 'Enter') return;
+      var params = new URLSearchParams(window.location.search);
+      var v = searchEl.value.trim();
+      if (v) params.set('q', v); else params.delete('q');
+      params.delete('page');
+      window.location.search = params.toString();
+    });
     searchEl.addEventListener('input', function() {
       clearTimeout(searchTimer);
       searchTimer = setTimeout(function() {
@@ -1228,15 +1329,11 @@ document.addEventListener('DOMContentLoaded',function(){
     w.addEventListener('mouseleave', function() { if (wwTip) wwTip.classList.add('hidden'); });
     w.addEventListener('click', function() {
       if (wwTip) wwTip.classList.add('hidden');
-      var msgBtn = document.querySelector('.fbtn[data-main="messages"]');
-      if (msgBtn) msgBtn.click();
-      var se = document.getElementById('msg-search');
-      if (se) {
-        se.value = w.dataset.word;
-        se.dispatchEvent(new Event('input'));
-        se.focus();
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      var wp = new URLSearchParams(window.location.search);
+      wp.set('q', w.dataset.word);
+      wp.set('main', 'messages');
+      wp.delete('page');
+      window.location.search = wp.toString();
     });
   });
 
@@ -1394,10 +1491,21 @@ async function launchViewer(outDir, mode) {
       return;
     }
 
+    if (pathname === '/api/intel-counts') {
+      let off = [];
+      try { off = JSON.parse(parsedUrl.searchParams.get('off') || '[]'); } catch {}
+      if (!Array.isArray(off)) off = [];
+      const items = (mode === 'mentions' ? data.mentions : data.messages) || [];
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(countIntelWithout(items, off.filter((k) => typeof k === 'string'))));
+      return;
+    }
+
     if (pathname === '/' || pathname === '/index.html') {
       const page  = parseInt(parsedUrl.searchParams.get('page') || '0', 10) || 0;
       const intel = parsedUrl.searchParams.get('intel') || null;
-      const html  = buildHTML(data, mode, page, intel, mentionsData, heatmapData, timelineData, profileData);
+      const query = parsedUrl.searchParams.get('q') || '';
+      const html  = buildHTML(data, mode, page, intel, mentionsData, heatmapData, timelineData, profileData, query);
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(html);
       return;
@@ -1416,6 +1524,11 @@ async function launchViewer(outDir, mode) {
 
     res.writeHead(404).end('not found');
   });
+
+  // Tag every message and build the word wall / counts now, so the first
+  // page load isn't the one that pays for it.
+  getDerived(data, (mode === 'mentions' ? data.mentions : data.messages) || [], mode === 'mentions');
+  if (mentionsData) getDerived(mentionsData, mentionsData.mentions || [], true);
 
   return new Promise((resolve) => {
     server.listen(0, '127.0.0.1', () => {
