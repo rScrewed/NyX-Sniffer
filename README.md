@@ -2,7 +2,8 @@
 
 <p align="center">
   <b>Turn a Discord user ID into a profile.</b><br>
-  Word wall · activity schedule · social graph · OSINT intel tags<br>
+  Parallel scraper · word wall · activity schedule · social graph · OSINT intel tags<br>
+  AI image sorter · device detection · Terms of Service flags · resumable scans<br>
   <sub>Open source · By rScrewed</sub>
 </p>
 
@@ -40,13 +41,15 @@ If you don't have clear authorization to investigate the target and the server(s
 
 People forget what they've put out there. Months or years of messages spread across a dozen servers add up to more than most people could recall themselves. NyX-Sniffer pulls all of it into one place, and the browser viewer turns that raw dump into a profile instead of a wall of text:
 
+- **Parallel scraper**: add more accounts as workers and NyX-Sniffer splits every server's history between them, so big servers finish in a fraction of the time. Idle workers even help rate-limited ones.
+- **Resumable scans**: stop with Ctrl+C at any point and continue later without losing progress or re-downloading files.
 - **Word Wall**: the target's most-used words, sized by how often they say them.
 - **Mentions and Ranked Mentioners**: who pings them and how often, ranked. This is their real social graph, the accounts they actually talk to. Click a name to pivot into everything that person has said to the target.
 - **OSINT intel tags**: messages are auto-tagged when they touch location, work and income, identity, social handles, technical details, physical details, credentials, places and more. Counters cover every message in the export, and filters stay instant on exports with tens of thousands of messages.
   - **Bannable** flags anything that breaks Discord's Terms of Service, about 1,600 phrases across underage users (under 13), child safety, selfbots and token theft, phishing and fake Nitro scams, account and server trading, harassment and threats, doxxing and swatting, hate speech and extremism, self-harm promotion, illegal goods and carding, financial scams, adult solicitation and gore, raids and mass reporting, ban evasion, and cheats and piracy.
   - **Device** recognises files that came from a specific device or app (iPhone photos and screen recordings, Google Pixel, Android, WhatsApp, Snapchat, Windows and macOS screenshots, Sony, Nikon, GoPro, DJI, camera RAW and more) and adds a "from:" chip. Detection is based on file names, not metadata, so treat it as a strong hint rather than proof.
 - **Heatmap and Timeline**: exactly when the target is online, by hour and by month, with a daily breakdown per month.
-- **Sort Files**: sorts the downloaded images into categories with a local AI image classifier.
+- **Sort Files (AI image sorter)**: sorts the downloaded images into 23 categories with a local AI classifier and discovers new categories on its own. Nothing leaves your machine.
 - **Search and filters**: by file type, server and channel, mentioner, or live search. Press Enter in the search box to search every message in the export.
 
 ![Word Wall in the browser viewer (target details hidden)](images/word-wall.png)
