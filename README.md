@@ -1,7 +1,8 @@
 <h1 align="center">NyX-Sniffer</h1>
 
 <p align="center">
-  <b>Turn a Discord user ID into a profile.</b><br>
+  <b>Palantir for Discord, built on public info.</b><br>
+  Turn a Discord user ID into a profile.<br>
   Parallel scraper · word wall · activity schedule · social graph · OSINT intel tags<br>
   AI image sorter · device detection · Terms of Service flags<br>
   <sub>Open source · By rScrewed</sub>
@@ -21,7 +22,7 @@
   <img alt="NyX-Sniffer scanning a target with 18 parallel workers" src="images/demo.gif" width="800">
 </p>
 
-A terminal-based OSINT tool that sweeps your shared Discord servers for messages, files, and mentions tied to a target user ID. **The terminal only collects the raw data. The browser viewer it opens afterward is what turns that data into a profile.**
+A terminal-based OSINT tool that sweeps your shared Discord servers for messages, files, and mentions tied to a target user ID. It only uses what your own account can already see in the servers you share with the target. **The terminal only collects the raw data. The browser viewer it opens afterward is what turns that data into a profile.**
 
 ---
 
