@@ -3,6 +3,8 @@
 const { settings } = require('../../config/settings');
 const { SEARCH_PAGE_SIZE, SEARCH_OFFSET_LIMIT } = require('../../discord/searchQuery');
 const { isOlderSnowflake, snowflakeBefore } = require('../../discord/snowflake');
+const { isIndexPending, indexRetryDelayMs, MAX_INDEX_ATTEMPTS } = require('../../discord/searchIndex');
+const { delay } = require('../../shared/time');
 const { previewMessage } = require('./attachments');
 const { pauseBetweenPages, coolDown, waitOutRateLimit } = require('./pacing');
 
@@ -35,6 +37,7 @@ async function paginateGuildSearch(search) {
   let page = 0;
   let anchorId = null;
   let networkRetries = 0;
+  let indexAttempts = 0;
   let thousandsSeen = 0;
   let usingHelper = false;
   let releaseHelper = null;
@@ -73,6 +76,13 @@ async function paginateGuildSearch(search) {
         setMood('sad');
         await waitOutRateLimit(waitMs, remainingPages, report);
         setMood('hunting');
+        continue;
+      }
+
+      if (isIndexPending(data) && ++indexAttempts < MAX_INDEX_ATTEMPTS) {
+        const waitMs = indexRetryDelayMs(data);
+        report('waiting ' + Math.ceil(waitMs / 1000) + 's for Discord to index this server...');
+        await delay(waitMs);
         continue;
       }
 

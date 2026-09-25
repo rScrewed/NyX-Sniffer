@@ -145,3 +145,25 @@ test('parallel scan reports when the target is in no server', async () => {
     removeDirectory(root);
   }
 });
+
+test('parallel discovery says why a server could not be searched', async () => {
+  const root = makeTempDirectory();
+  try {
+    const { messages } = silenceTerminal();
+    const state = newState('all', path.join(root, '_tmp_r'));
+    const guild = scanGuilds[1];
+    await runParallelScan({
+      state,
+      guilds: [guild],
+      finalGuild: guild,
+      guildMembership: new Map([[guild.id, { guild, memberTokenIdxs: new Set([0, 1]) }]]),
+      tokens: ['TOKEN_C', 'TOKEN_B'],
+      mainClient: createDiscordClient({ token: 'TOKEN_C' }),
+      downloader: createDownloader(),
+    });
+    assert.equal(state.messages.length, 0);
+    assert.ok(messages.some((line) => line.includes('Beta') && line.includes('search failed') && line.includes('Missing Access')));
+  } finally {
+    removeDirectory(root);
+  }
+});

@@ -170,3 +170,19 @@ test('borrows an idle helper when a rate limit hits near the end', async () => {
   assert.ok(helperPaths.length >= 1);
   assert.equal(released, true);
 });
+
+test('waits for a server whose search index is not ready yet', async () => {
+  const messages = makeMessages(5);
+  const inner = serverFor(messages);
+  let pending = 2;
+  const request = async (path) => {
+    if (pending-- > 0) return { code: 110000, message: 'Index not yet available', retry_after: 0.001 };
+    return inner(path);
+  };
+  const collected = [];
+  const { context } = baseContext(request);
+  const started = Date.now();
+  await paginateGuildSearch({ ...baseSearch(collected), context });
+  assert.equal(collected.length, 5);
+  assert.ok(Date.now() - started >= 3900);
+});

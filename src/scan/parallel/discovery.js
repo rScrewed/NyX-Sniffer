@@ -2,6 +2,7 @@
 
 const terminal = require('../../terminal');
 const { SEARCH_OFFSET_LIMIT, buildGuildSearchPath } = require('../../discord/searchQuery');
+const { isIndexPending, indexRetryDelayMs, MAX_INDEX_ATTEMPTS } = require('../../discord/searchIndex');
 const { snowflakeBefore, snowflakeToTimestamp, timestampToSnowflake } = require('../../discord/snowflake');
 const { stripEmoji } = require('../../shared/text');
 
@@ -44,10 +45,22 @@ async function findMessageAtOffset({ search, guildId, targetOffset, label, loade
   return message ? message.id : null;
 }
 
+async function searchWhenIndexed(search, guildId, extra, onWaiting) {
+  let response = await search(guildId, extra);
+  for (let attempt = 1; isIndexPending(response) && attempt < MAX_INDEX_ATTEMPTS; attempt++) {
+    const waitMs = indexRetryDelayMs(response);
+    onWaiting(Math.ceil(waitMs / 1000));
+    await terminal.delay(waitMs);
+    response = await search(guildId, extra);
+  }
+  return response;
+}
+
 async function discoverActiveServers({ guilds, scan, tokenCount, client }) {
   const search = createProbe(scan, client);
   const activeServers = [];
   const workerSplits = tokenCount - 1;
+  const problems = [];
   let completedWork = 0;
 
   terminal.log('  discovering active servers...');
@@ -59,10 +72,17 @@ async function discoverActiveServers({ guilds, scan, tokenCount, client }) {
   for (const guild of guilds) {
     const name = stripEmoji(guild.name) || guild.id;
 
-    const newest = await search(guild.id, { limit: 1 });
+    const newest = await searchWhenIndexed(
+      search,
+      guild.id,
+      { limit: 1 },
+      (seconds) => loader.update(completedWork, name + '  (waiting ' + seconds + 's for Discord to index this server)'),
+    );
     if (!newest || newest.code || !newest.total_results) {
+      const failed = !newest || newest.code;
+      if (failed) problems.push('  ✗  ' + name + '  ·  search failed  (' + (newest && newest.message ? newest.message : 'no response') + ')');
       completedWork += workerSplits;
-      loader.update(completedWork, name + '  (no messages)');
+      loader.update(completedWork, name + (failed ? '  (search failed)' : '  (no messages)'));
       await pause(300, 300);
       continue;
     }
@@ -95,6 +115,8 @@ async function discoverActiveServers({ guilds, scan, tokenCount, client }) {
 
   await loader.finish('discovery complete');
   terminal.log('');
+  for (const problem of problems) terminal.log(problem);
+  if (problems.length) terminal.log('');
   return activeServers;
 }
 
