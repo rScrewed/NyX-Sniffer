@@ -21,7 +21,7 @@
   <img alt="Nyx scanning a target with 18 parallel workers" src="images/demo.gif" width="800">
 </p>
 
-> **🔑 A license key is required to run Nyx.** Without a valid key the tool won't start. Get one at **[ko-fi.com/rscrewed](https://ko-fi.com/rscrewed)** *before* you download or run it, see [License key](#license-key) below.
+> **A license key is required to run Nyx.** Without a valid key the tool won't start. Get one at **[ko-fi.com/rscrewed](https://ko-fi.com/rscrewed)** *before* you download or run it, see [License key](#license-key) below.
 
 A terminal-based OSINT tool that sweeps your shared Discord servers for messages, files, and mentions tied to a target user ID. **The terminal only collects the raw data, the browser viewer it opens afterward is what actually turns that data into a profile.**
 
@@ -43,7 +43,7 @@ People forget what they've put out there. Months or years of messages spread acr
 
 ---
 
-## ⚠️ Read this before you use it
+## Read this before you use it
 
 This tool logs in as a real Discord **user account** (not a bot) and drives it programmatically to search message history, optionally across several accounts ("workers") at once to go faster. That is automation of a user account, which is against **[Discord's Terms of Service](https://discord.com/terms)**.
 
@@ -59,7 +59,7 @@ If you don't have clear authorization to investigate the target and the server(s
 
 Nyx is gated behind a license key, **you need to buy one to run the tool.** On launch it checks the key's signature, expiry, and revocation status before letting a scan start; without a valid key it won't run.
 
-### 🎁 Try it free first
+### Try it free first
 
 No purchase needed to take it for a spin. Paste this trial key when prompted, it runs on **any machine** and is valid **through September 25, 2026**:
 
@@ -92,6 +92,7 @@ LicenseKey=your_key_here
 - [Multiple accounts / workers](#multiple-accounts--workers)
 - [Modes](#modes)
 - [Heatmap & Timeline](#heatmap--timeline)
+- [Sort Files](#sort-files)
 - [Settings](#settings)
 - [Output](#output)
 - [Notes](#notes)
@@ -106,11 +107,12 @@ Nyx ships as a standalone folder, no Node.js, no installing anything. **Windows 
 nyx.exe
 viewer.css
 workerDisplay.js
+sort_images.py
 ```
 
-Keep all three in the same folder, don't move the `.exe` out on its own.
+Keep all four in the same folder, don't move the `.exe` out on its own.
 
-> **Scanned and clean.** The release `.exe` is checked on VirusTotal: [view the scan](https://www.virustotal.com/gui/file/10c8a641f43cb53a2d523811657e549e582cb230715fa579c0ca65572b3a9e7c).
+> **Scanned and clean.** The v1 release `.exe` was checked on VirusTotal: [view the scan](https://www.virustotal.com/gui/file/10c8a641f43cb53a2d523811657e549e582cb230715fa579c0ca65572b3a9e7c).
 
 1. **Run it.** Double-click `nyx.exe`.
 2. **Enter your license key** when prompted. [Buy one on Ko-fi](https://ko-fi.com/rscrewed) if you don't have one yet. It's saved automatically once verified, so you only enter it this one time.
@@ -141,7 +143,7 @@ nyx.exe
 
 (double-click it, or run it from a command prompt in that folder)
 
-From the start menu you can start a **New Scan**, **Continue** an interrupted one, **Open Viewer** on past results, or change **Settings**.
+From the start menu you can start a **New Scan**, **Continue** an interrupted one, **Open Viewer** on past results, **Sort Files** from a finished scan, or change **Settings**.
 
 A new scan walks you through:
 
@@ -174,7 +176,7 @@ Nyx has two "screens," and they do very different jobs: the **terminal menu** co
 
 Everything here is number-driven, there's no arrow-key navigation. Every screen lists options as `[1]`, `[2]`, etc., you type the number (or a letter like `S` for Settings) and hit Enter, and `0` (or `b`) always backs out to the previous screen. It just runs the scan and saves files, no analysis happens here. The flow you'll walk through:
 
-- **Start menu**: `[1]` New Scan, `[2]`/`[3]` Continue an interrupted scan or Open Viewer (only shown once you have past runs), `[S]` Settings.
+- **Start menu**: `[1]` New Scan, then Continue an interrupted scan, Open Viewer and Sort Files (each only available once you have past runs), `[S]` Settings.
 - **New Scan** walks you top to bottom: license key → token (both skipped automatically once saved in `.env`) → target user ID → pick servers by number (`1,2,3` or Enter for all) → pick a mode `[1-4]` → optional heatmap → optional browser viewer.
 - While a scan runs, a live status line and (with multiple workers) a pinned row per worker show progress in place, no scrolling spam.
 - **Ctrl+C** at any point safely stops the scan; it resumes later from **Continue Scan** on the start menu.
@@ -186,10 +188,12 @@ Opens automatically when a scan finishes, or via `nyx.exe --view`. It's a normal
 - **Tabs across the top** switch between All / Messages / Files / Mentions / Heatmap / Timeline / Word Wall.
 - **Word Wall**: the target's most frequently used words, sized by frequency; click a word to jump into Messages filtered by it.
 - **Mentions tab + Ranked Mentioners sidebar**: click any user in the ranking to filter the mentions feed to only their messages, for mapping out who the target actually talks to.
-- **OSINT Intel badges**: colored tags on messages that match a detection category (location, economics, identity, social, activities, technical, criminal, physical, credentials, places). Click a badge or the filter above the feed to highlight exactly what triggered it. Wordlists live in `wordlists.js` and can be edited.
+- **OSINT Intel badges**: colored tags on messages that match a detection category (location, economics, identity, social, activities, technical, criminal, physical, credentials, places, bannable, device). Click a badge or the filter above the feed to highlight exactly what triggered it. Wordlists live in `wordlists.js` and can be edited. The counter on each filter button covers every message in the export, not just the page you're viewing, and filters stay instant even on exports with tens of thousands of messages.
+  - **Bannable** flags messages that break Discord's Terms of Service, about 1,600 phrases across underage users (under 13), child safety (grooming, sextortion), selfbots and token theft, phishing and fake Nitro/gift scams, account and server trading, harassment and threats, doxxing/swatting/DDoS, hate speech and violent extremism, self-harm promotion, illegal goods and carding, financial scams, non-consensual/adult solicitation and gore, raids and mass reporting, ban evasion, and cheats/piracy.
+  - **Device** guesses where a file came from (iPhone, Android, WhatsApp, screenshot and so on) from its filename, and adds a "from:" chip under the message.
 - **Heatmap / Timeline tabs**: hourly and monthly activity as charts; click a month on the Timeline for a daily breakdown.
 - **Sidebar** lists every server/channel scanned, click one to jump straight to it; the channel you're scrolled to auto-highlights as you go.
-- **Search bar** live-filters the currently loaded messages as you type.
+- **Search bar** live-filters the page you're on as you type; press Enter to search every message in the export. The viewer shows 500 messages per page.
 - **File type filters** narrow the Files tab to images, videos, audio, or other.
 - **Jump links** on any message open the original in Discord.
 
@@ -291,6 +295,20 @@ Times are displayed in AM/PM format.
 
 ---
 
+## Sort Files
+
+Sorts the images downloaded by a finished scan into folders by what's in them, using a local AI image classifier (CLIP). Nothing is uploaded anywhere. Pick **Sort Files** from the start menu, choose a scan, choose a quality level, and it runs.
+
+- **23 built-in categories**: people/selfies, documents and IDs, chat screenshots, app screenshots, gaming, outdoor locations, home interiors, vehicles, animals, tech hardware, code/terminal, money and finance, weapons, drugs and alcohol, adult content, memes, anime/art, food, nature, fashion, sports, media, and text/graphics.
+- **New categories are found automatically**: images that don't fit any built-in category are grouped by visual similarity and each group is named on its own, as `auto_<name>` folders.
+- **Quality levels**: **Fast** is quickest but rougher, **Balanced** is the default, **Best** uses a larger model and is the most accurate but slowest. A GPU speeds all of them up a lot; large scans on CPU can take hours.
+- **Originals are never touched.** Results go to `sorted/<category>/` inside the scan folder as links (or copies), and `sorted/index.json` records each image's category, confidence and runner-up guesses, so you can check the shaky ones. Re-running is fast because the analysis is cached.
+- **Requirements**: Python 3.9 or newer installed, plus internet the first time. On first use Nyx asks before installing its dependencies (about 200 MB, kept in a private `.nyx-venv` folder next to the exe) and the model downloads on first run. Nothing is installed system-wide.
+
+Categories are plain text prompts at the top of `sort_images.py` and can be edited.
+
+---
+
 ## Settings
 
 From the start menu, **Settings** lets you tune the pacing Nyx uses when talking to Discord's API:
@@ -325,7 +343,8 @@ Everything_username/
 | `mentions.txt` | Human-readable mention report |
 | `heatmap.txt` | Hourly activity breakdown |
 | `timeline.json` | Monthly message volume, used by the viewer |
-| `files/` | Downloaded attachments |
+| `files/` | Downloaded attachments (each unique file is downloaded once, even if it's posted in several messages) |
+| `sorted/` | Images sorted by category, plus `index.json` (after running **Sort Files**) |
 
 These output folders (and `_tmp_*` in-progress scans) are git-ignored by default, don't remove that from `.gitignore` before pushing, since they can contain real personal data collected during a scan.
 
