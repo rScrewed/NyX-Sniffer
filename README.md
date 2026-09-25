@@ -7,11 +7,10 @@
 </p>
 
 <p align="center">
-  <a href="https://ko-fi.com/rscrewed"><img alt="Get a license on Ko-fi" src="https://img.shields.io/badge/Get%20a%20license-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white"></a>
+  <a href="https://ko-fi.com/rscrewed"><img alt="Support on Ko-fi" src="https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white"></a>
 </p>
 
 <p align="center">
-  <img alt="License key required" src="https://img.shields.io/badge/license%20key-required-red">
   <img alt="Platform: Windows" src="https://img.shields.io/badge/platform-Windows-blue">
   <img alt="JavaScript" src="https://img.shields.io/badge/language-JavaScript-yellow">
   <a href="https://www.virustotal.com/gui/file/10c8a641f43cb53a2d523811657e549e582cb230715fa579c0ca65572b3a9e7c"><img alt="VirusTotal scan" src="https://img.shields.io/badge/VirusTotal-scan-8b7cf0?logo=virustotal&logoColor=white"></a>
@@ -20,8 +19,6 @@
 <p align="center">
   <img alt="Nyx scanning a target with 18 parallel workers" src="images/demo.gif" width="800">
 </p>
-
-> **A license key is required to run Nyx.** Without a valid key the tool won't start. Get one at **[ko-fi.com/rscrewed](https://ko-fi.com/rscrewed)** *before* you download or run it, see [License key](#license-key) below.
 
 A terminal-based OSINT tool that sweeps your shared Discord servers for messages, files, and mentions tied to a target user ID. **The terminal only collects the raw data, the browser viewer it opens afterward is what actually turns that data into a profile.**
 
@@ -55,37 +52,9 @@ If you don't have clear authorization to investigate the target and the server(s
 
 ---
 
-## License key
-
-Nyx is gated behind a license key, **you need to buy one to run the tool.** On launch it checks the key's signature, expiry, and revocation status before letting a scan start; without a valid key it won't run.
-
-### Try it free first
-
-No purchase needed to take it for a spin. Paste this trial key when prompted, it runs on **any machine** and is valid **through September 25, 2026**:
-
-```
-NYX1.eyJ2IjoxLCJpZCI6Ijg1ZDA0NDJkIiwidXNlciI6InRyaWFsIiwiaWF0IjoxNzkwMDg4Mjc4MDMwLCJleHAiOjE3OTAzNDc0NzgwMzAsIm11bHRpIjp0cnVlfQ.AhtFZS5hsPuH2ueH9g_L6nI06jthxqzYZXJc6X64bqdFarPS3OtWTgA1Nddcn0FlCeKp1MSFZTEVIzWxIfquBg
-```
-
-Like it? Grab a full key below to keep using it.
-
-**Get a key here → [ko-fi.com/rscrewed](https://ko-fi.com/rscrewed)**
-
-Once you have your key, either:
-
-- Paste it in when prompted on launch (`» License key:`), or
-- Drop it in `.env` to skip the prompt on every run:
-
-```
-LicenseKey=your_key_here
-```
-
----
-
 ## Table of Contents
 
 - [What you actually get](#what-you-actually-get)
-- [License key](#license-key)
 - [First-time setup](#first-time-setup)
 - [Usage](#usage)
 - [Navigating the UI](#navigating-the-ui)
@@ -115,9 +84,8 @@ Keep all four in the same folder, don't move the `.exe` out on its own.
 > **Scanned and clean.** The v1 release `.exe` was checked on VirusTotal: [view the scan](https://www.virustotal.com/gui/file/10c8a641f43cb53a2d523811657e549e582cb230715fa579c0ca65572b3a9e7c).
 
 1. **Run it.** Double-click `nyx.exe`.
-2. **Enter your license key** when prompted. [Buy one on Ko-fi](https://ko-fi.com/rscrewed) if you don't have one yet. It's saved automatically once verified, so you only enter it this one time.
-3. **Click through the token prompt**: paste your Discord user token and hit Enter. A `.env` file gets created next to the `.exe` and your token is saved into it, so you won't be asked again on future runs.
-4. **(Optional) Add more workers for speed.** Open the `.env` file that just got created (any text editor) and, instead of the single `Token=` line, add numbered ones:
+2. **Click through the token prompt**: paste your Discord user token and hit Enter. A `.env` file gets created next to the `.exe` and your token is saved into it, so you won't be asked again on future runs.
+3. **(Optional) Add more workers for speed.** Open the `.env` file that just got created (any text editor) and, instead of the single `Token=` line, add numbered ones:
 
    ```
    Token1=first_discord_token
@@ -147,7 +115,7 @@ From the start menu you can start a **New Scan**, **Continue** an interrupted on
 
 A new scan walks you through:
 
-1. **License key / Token**: skipped automatically once they're saved in `.env` (see [First-time setup](#first-time-setup))
+1. **Token**: skipped automatically once it's saved in `.env` (see [First-time setup](#first-time-setup))
 2. **Target ID**: the user ID to investigate
 3. **Server selection**: pick specific servers by number (`1,2,3`) or press Enter to scan all
 4. **Mode**: choose what to collect
@@ -177,7 +145,7 @@ Nyx has two "screens," and they do very different jobs: the **terminal menu** co
 Everything here is number-driven, there's no arrow-key navigation. Every screen lists options as `[1]`, `[2]`, etc., you type the number (or a letter like `S` for Settings) and hit Enter, and `0` (or `b`) always backs out to the previous screen. It just runs the scan and saves files, no analysis happens here. The flow you'll walk through:
 
 - **Start menu**: `[1]` New Scan, then Continue an interrupted scan, Open Viewer and Sort Files (each only available once you have past runs), `[S]` Settings.
-- **New Scan** walks you top to bottom: license key → token (both skipped automatically once saved in `.env`) → target user ID → pick servers by number (`1,2,3` or Enter for all) → pick a mode `[1-4]` → optional heatmap → optional browser viewer.
+- **New Scan** walks you top to bottom: token (skipped automatically once saved in `.env`) → target user ID → pick servers by number (`1,2,3` or Enter for all) → pick a mode `[1-4]` → optional heatmap → optional browser viewer.
 - While a scan runs, a live status line and (with multiple workers) a pinned row per worker show progress in place, no scrolling spam.
 - **Ctrl+C** at any point safely stops the scan; it resumes later from **Continue Scan** on the start menu.
 
@@ -361,4 +329,4 @@ These output folders (and `_tmp_*` in-progress scans) are git-ignored by default
 
 ## Support
 
-Nyx requires a license key to run, grab one at **[ko-fi.com/rscrewed](https://ko-fi.com/rscrewed)**.
+Nyx is free. If it's useful to you, you can support development at **[ko-fi.com/rscrewed](https://ko-fi.com/rscrewed)**.
