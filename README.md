@@ -7,6 +7,10 @@
 </p>
 
 <p align="center">
+  <a href="https://ko-fi.com/rscrewed"><img alt="Support on Ko-fi" src="https://img.shields.io/badge/Support%20me-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white"></a>
+</p>
+
+<p align="center">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green">
   <img alt="Node.js 20+" src="https://img.shields.io/badge/node-%3E%3D20-339933?logo=node.js&logoColor=white">
   <img alt="Platforms: Windows, macOS, Linux" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue">
