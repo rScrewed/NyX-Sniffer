@@ -3,7 +3,7 @@
 <p align="center">
   <b>Turn a Discord user ID into a profile.</b><br>
   Parallel scraper · word wall · activity schedule · social graph · OSINT intel tags<br>
-  AI image sorter · device detection · Terms of Service flags · resumable scans<br>
+  AI image sorter · device detection · Terms of Service flags<br>
   <sub>Open source · By rScrewed</sub>
 </p>
 
